@@ -1,6 +1,7 @@
 package spotifystreamer.app.android.justinbriggs.net.spotifystreamer;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,8 +12,10 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import kaaes.spotify.webapi.android.models.Artist;
+import kaaes.spotify.webapi.android.models.Image;
 
 
 public class ArtistListAdapter extends ArrayAdapter<Artist> {
@@ -36,14 +39,18 @@ public class ArtistListAdapter extends ArrayAdapter<Artist> {
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View rowView = inflater.inflate(R.layout.list_item_artist, parent, false);
 
-        ImageView ivFriend = (ImageView) rowView.findViewById(R.id.iv_artist);
+        ImageView ivArtist = (ImageView) rowView.findViewById(R.id.iv_artist);
         try {
-            // The index represents url for 64 px image.
-            Picasso.with(mContext).load(artist.images.get(2).url)
+
+            List<Image> images = artist.images;
+            Log.v("asdf", "images Size(): " + images.size());
+
+            // Always get the last image, which should be the 64 px size, but may not be included.
+            Picasso.with(mContext).load(images.get(images.size()-1).url)
                     .placeholder(R.drawable.ic_launcher)
-                    .into(ivFriend);
+                    .into(ivArtist);
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
         TextView tvName = (TextView) rowView.findViewById(R.id.tv_name);

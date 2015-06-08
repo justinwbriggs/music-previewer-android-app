@@ -1,11 +1,10 @@
 package spotifystreamer.app.android.justinbriggs.net.spotifystreamer;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -26,13 +25,12 @@ import kaaes.spotify.webapi.android.models.Pager;
 public class ArtistListFragment extends Fragment {
 
     private final String LOG_TAG = ArtistListFragment.class.getSimpleName();
+    public static final String EXTRA_ARTIST_ID = "artist_id"; // The artist id to pass
+    public static final String EXTRA_ARTIST_NAME = "artist_name"; // The artist name to past
 
     private ArrayAdapter<Artist> mArtistListAdapter;
     private EditText mEdtSearch;
     private Button mBtnSearch;
-
-    public ArtistListFragment() {
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -42,17 +40,12 @@ public class ArtistListFragment extends Fragment {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         mArtistListAdapter = new ArtistListAdapter(getActivity(), new ArrayList<Artist>());
 
-        View rootView = inflater.inflate(R.layout.fragment_main, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
 
         mEdtSearch = (EditText)rootView.findViewById(R.id.edt_search);
         mBtnSearch = (Button)rootView.findViewById(R.id.btn_search);
@@ -63,8 +56,7 @@ public class ArtistListFragment extends Fragment {
             }
         });
 
-        // Get a reference to the ListView, and attach this adapter to it.
-        ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
+        ListView listView = (ListView) rootView.findViewById(R.id.listview_artist);
         listView.setAdapter(mArtistListAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -72,22 +64,22 @@ public class ArtistListFragment extends Fragment {
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
 
                 Artist artist = mArtistListAdapter.getItem(position);
-                Log.v(LOG_TAG, "artistName: " + artist.name);
 
-                /*
-                Intent intent = new Intent(getActivity(), DetailActivity.class)
-                        .putExtra(Intent.EXTRA_TEXT, forecast);
+                Intent intent = new Intent(getActivity(), TrackListActivity.class)
+                        .putExtra(EXTRA_ARTIST_ID, artist.id)
+                        .putExtra(EXTRA_ARTIST_NAME, artist.name);
+
                 startActivity(intent);
-                */
+
             }
         });
 
         return rootView;
     }
 
-    private void updateArtistList(String artist) {
+    private void updateArtistList(String artistName) {
         FetchArtistsTask artistsTask = new FetchArtistsTask();
-        artistsTask.execute(artist);
+        artistsTask.execute(artistName);
     }
 
     @Override
@@ -114,8 +106,6 @@ public class ArtistListFragment extends Fragment {
 
                 // Display a toast message if there are no results.
                 if(results.artists.items.size() == 0) {
-                    Log.v(LOG_TAG,"noArtistsBythatname");
-
                     displayToast(getString(R.string.toast_no_artists));
                 }
 
