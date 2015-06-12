@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
@@ -43,7 +45,18 @@ public class ArtistListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        mArtistListAdapter = new ArtistListAdapter(getActivity(), new ArrayList<Artist>());
+        ArrayList<Artist> artists = new ArrayList<>();
+
+        FragmentManager fm = getActivity().getSupportFragmentManager();
+        RetainedFragment retainedFragment = (RetainedFragment) fm
+                .findFragmentByTag(RetainedFragment.class.getSimpleName());
+
+        if(retainedFragment != null && retainedFragment.getArtistsPager() != null) {
+            List<Artist> list = retainedFragment.getArtistsPager().artists.items;
+            artists.addAll(list);
+        }
+
+        mArtistListAdapter = new ArtistListAdapter(getActivity(), artists);
 
         View rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
 
@@ -82,11 +95,6 @@ public class ArtistListFragment extends Fragment {
         artistsTask.execute(artistName);
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-    }
-
     public class FetchArtistsTask extends AsyncTask<String, Void, ArtistsPager> {
 
         private final String LOG_TAG = FetchArtistsTask.class.getSimpleName();
@@ -102,11 +110,21 @@ public class ArtistListFragment extends Fragment {
             SpotifyService spotify = api.getService();
 
             try {
+
                 ArtistsPager results = spotify.searchArtists(params[0]);
 
                 // Display a toast message if there are no results.
                 if(results.artists.items.size() == 0) {
                     displayToast(getString(R.string.toast_no_artists));
+                }
+
+                FragmentManager fm = getActivity().getSupportFragmentManager();
+                RetainedFragment retainedFragment = (RetainedFragment) fm
+                        .findFragmentByTag(RetainedFragment.class.getSimpleName());
+
+
+                if(retainedFragment != null) {
+                    retainedFragment.setArtistsPager(results);
                 }
 
                 return results;
