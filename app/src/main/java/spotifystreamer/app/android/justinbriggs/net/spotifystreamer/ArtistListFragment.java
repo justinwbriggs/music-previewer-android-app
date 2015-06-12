@@ -5,14 +5,17 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -61,11 +64,18 @@ public class ArtistListFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
 
         mEdtSearch = (EditText)rootView.findViewById(R.id.edt_search);
-        mBtnSearch = (Button)rootView.findViewById(R.id.btn_search);
-        mBtnSearch.setOnClickListener(new View.OnClickListener() {
+
+        mEdtSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
-            public void onClick(View view) {
-                updateArtistList(mEdtSearch.getText().toString());
+            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+
+                // IME_ACTION_SEARCH defines the keyboard and landscape submit buttons.
+                if (i == EditorInfo.IME_ACTION_SEARCH) {
+                    updateArtistList(mEdtSearch.getText().toString());
+                    mEdtSearch.clearFocus();
+                }
+                // Returning false automatically closes keyboard.
+                return false;
             }
         });
 
