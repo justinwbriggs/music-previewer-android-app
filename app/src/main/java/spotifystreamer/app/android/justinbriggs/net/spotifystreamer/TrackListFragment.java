@@ -80,8 +80,9 @@ public class TrackListFragment extends Fragment {
                 .findFragmentByTag(RetainedFragment.class.getSimpleName());
 
         if(retainedFragment != null && retainedFragment.getTracks() != null) {
-            List<Track> list = retainedFragment.getTracks();
-            mTracks.addAll(list);
+            mTracks = (ArrayList<Track>)retainedFragment.getTracks();
+            mTrackListAdapter.clear();
+            mTracks.addAll(mTracks);
         } else {
             fetchTracks(mArtistId);
         }

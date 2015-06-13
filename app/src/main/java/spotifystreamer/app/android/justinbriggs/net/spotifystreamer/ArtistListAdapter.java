@@ -26,7 +26,6 @@ public class ArtistListAdapter extends ArrayAdapter<Artist> {
         super(context, R.layout.list_item_artist, artists);
         mArtists = artists;
         mContext = context;
-
     }
 
     @Override

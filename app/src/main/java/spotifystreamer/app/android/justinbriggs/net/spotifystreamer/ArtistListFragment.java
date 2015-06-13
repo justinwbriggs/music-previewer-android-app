@@ -6,7 +6,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -48,15 +47,6 @@ public class ArtistListFragment extends Fragment {
                              Bundle savedInstanceState) {
 
 
-        // Let onResume take care of populating the list view, since it is called when both
-        // the activity is first started, when returning from another activity via the Back button,
-        // and when returning from another activity via the Up button
-
-
-        mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtists);
-
-
-
 
         View rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
 
@@ -82,6 +72,12 @@ public class ArtistListFragment extends Fragment {
             }
         });
 
+
+        // Let onResume take care of populating the list view, since it is called when both
+        // the device is reoriented, when returning from another activity via the Back button,
+        // and when returning from another activity via the Up button
+        mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtists);
+
         ListView listView = (ListView) rootView.findViewById(R.id.listview_artist);
         listView.setAdapter(mArtistListAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -94,8 +90,6 @@ public class ArtistListFragment extends Fragment {
                 Intent intent = new Intent(getActivity(), TrackListActivity.class)
                         .putExtra(EXTRA_ARTIST_ID, artist.id)
                         .putExtra(EXTRA_ARTIST_NAME, artist.name);
-                //intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
                 startActivity(intent);
 
             }
@@ -111,14 +105,10 @@ public class ArtistListFragment extends Fragment {
         RetainedFragment retainedFragment = (RetainedFragment) fm
                 .findFragmentByTag(RetainedFragment.class.getSimpleName());
 
-        if(retainedFragment != null && retainedFragment.getArtistsPager() != null) {
-            Log.v("asdf", "RetainedFragment: NOT NULL");
-            mArtists = (ArrayList<Artist>)retainedFragment.getArtistsPager().artists.items;
-            mArtists.addAll(mArtists);
+        if(retainedFragment != null && retainedFragment.getArtists() != null) {
+            mArtists = (ArrayList<Artist>)retainedFragment.getArtists();
+            mArtistListAdapter.clear();
             mArtistListAdapter.addAll(mArtists);
-        } else {
-            Log.v("asdf", "RetainedFragment: NULL");
-
         }
 
         super.onResume();
@@ -155,7 +145,7 @@ public class ArtistListFragment extends Fragment {
                 RetainedFragment retainedFragment = (RetainedFragment) fm
                         .findFragmentByTag(RetainedFragment.class.getSimpleName());
                 if(retainedFragment != null) {
-                    retainedFragment.setArtistsPager(results);
+                    retainedFragment.setArtists(results.artists.items);
                 }
 
                 return results;
@@ -189,29 +179,5 @@ public class ArtistListFragment extends Fragment {
         });
 
     }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-    }
-
-
-
-    @Override
-    public void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
 
 }

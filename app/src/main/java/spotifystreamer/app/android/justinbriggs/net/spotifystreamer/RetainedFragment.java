@@ -6,24 +6,21 @@ import android.support.v4.app.Fragment;
 
 import java.util.List;
 
-import kaaes.spotify.webapi.android.models.ArtistsPager;
+import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.Track;
 
 
 /*
  * The reasoning behind this headless fragment is that setRetainInstance(true) will prevent the
- * fragment from being destroyed. Therefore, you can retain instance variables for storage on
- * configuration changes. Effectively, onDestroy() is not called, although all other methods, including
- * onCreateView is called, redrawing the view. setRetainInstance() is not
- *
- * Technically, should we be saving an instance of this fragment in onSaveInstanceState()?
- * Can we share this among different activities?
- * Remember, onDestroy does not actually kill an activity
+ * fragment from being destroyed. Therefore, you can retain instance variables for orientation
+ * changes in your visible fragments.
+ * setRetainInstance() will not work in visible fragments since they are (usually) added to the
+ * backstack, which renders this method unusable.
  */
 
 public class RetainedFragment extends Fragment {
 
-    private ArtistsPager artistsPager;
+    private List<Artist> artists;
     private List<Track> tracks;
 
     // this method is only called once for this fragment
@@ -32,15 +29,14 @@ public class RetainedFragment extends Fragment {
         super.onCreate(savedInstanceState);
         // retain this fragment
         setRetainInstance(true);
-
     }
 
-    public void setArtistsPager(ArtistsPager artistsPager) {
-        this.artistsPager = artistsPager;
+    public List<Artist> getArtists() {
+        return artists;
     }
 
-    public ArtistsPager getArtistsPager() {
-        return artistsPager;
+    public void setArtists(List<Artist> artists) {
+        this.artists = artists;
     }
 
     public List<Track> getTracks() {

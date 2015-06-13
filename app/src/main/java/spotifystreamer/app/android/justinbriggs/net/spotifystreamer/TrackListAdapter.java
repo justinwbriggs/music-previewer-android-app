@@ -24,7 +24,6 @@ public class TrackListAdapter extends ArrayAdapter<Track> {
         super(context, R.layout.list_item_track, tracks);
         mTracks = tracks;
         mContext = context;
-
     }
 
     @Override
