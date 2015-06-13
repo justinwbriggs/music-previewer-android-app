@@ -8,6 +8,7 @@
     <string name="hint_search">Enter artist name</string>
     <string name="btn_search">></string>
 
-    <string name="toast_no_artists">No artists found</string>
-    <string name="toast_no_tracks">No tracks found for this artist</string>
+    <string name="toast_no_artists">No artists found. Please refine search.</string>
+    <string name="toast_no_tracks">No tracks found for this artist.</string>
+    <string name="toast_artist_required">Please enter an artist.</string>
 </resources>

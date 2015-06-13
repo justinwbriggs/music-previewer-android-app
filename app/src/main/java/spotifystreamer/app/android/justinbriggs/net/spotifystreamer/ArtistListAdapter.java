@@ -1,7 +1,6 @@
 package spotifystreamer.app.android.justinbriggs.net.spotifystreamer;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,14 +42,13 @@ public class ArtistListAdapter extends ArrayAdapter<Artist> {
         try {
 
             List<Image> images = artist.images;
-            Log.v("asdf", "images Size(): " + images.size());
 
             // Always get the last image, which should be the 64 px size, but may not be included.
             Picasso.with(mContext).load(images.get(images.size()-1).url)
                     .placeholder(R.drawable.ic_launcher)
                     .into(ivArtist);
         } catch (Exception e) {
-            //e.printStackTrace();
+            e.printStackTrace();
         }
 
         TextView tvName = (TextView) rowView.findViewById(R.id.tv_name);

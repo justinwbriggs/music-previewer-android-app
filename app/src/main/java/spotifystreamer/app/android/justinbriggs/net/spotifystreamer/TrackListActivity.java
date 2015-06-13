@@ -1,6 +1,7 @@
 package spotifystreamer.app.android.justinbriggs.net.spotifystreamer;
 
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -11,6 +12,20 @@ public class TrackListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_track_list);
+
+        // Find the retained fragment on activity restarts
+        FragmentManager fm = getSupportFragmentManager();
+        RetainedFragment retainedFragment = (RetainedFragment) fm
+                .findFragmentByTag(RetainedFragment.class.getSimpleName());
+
+        // Create headless RetainedFragment if it doesn't exist
+        if (retainedFragment == null) {
+            // add the fragment
+            retainedFragment = new RetainedFragment();
+            fm.beginTransaction().add(retainedFragment,
+                    RetainedFragment.class.getSimpleName()).commit();
+        }
+
     }
 
 

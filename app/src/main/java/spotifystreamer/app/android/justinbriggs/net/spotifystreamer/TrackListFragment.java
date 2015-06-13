@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
+import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,13 +29,14 @@ public class TrackListFragment extends Fragment {
 
     private String mArtistId;
     private String mArtistName;
+    private ArrayList<Track> mTracks;
     private ArrayAdapter<Track> mTrackListAdapter;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-
     }
 
     @Override
@@ -51,11 +52,16 @@ public class TrackListFragment extends Fragment {
             mArtistName = intent.getStringExtra(ArtistListFragment.EXTRA_ARTIST_NAME);
         }
 
-        mTrackListAdapter = new TrackListAdapter(getActivity(), new ArrayList<Track>());
+
+        // So we update the UI until the AsyncTask is finished. It would be better to just
+        // pass in an empty array and return the view, than
+        //populateTrackAdapter();
+
 
         View rootView = inflater.inflate(R.layout.fragment_track_list, container, false);
 
-
+        mTracks = new ArrayList<>();
+        mTrackListAdapter = new TrackListAdapter(getActivity(),mTracks);
         ListView listView = (ListView) rootView.findViewById(R.id.listview_track);
         listView.setAdapter(mTrackListAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -64,7 +70,6 @@ public class TrackListFragment extends Fragment {
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
 
                 Track track = mTrackListAdapter.getItem(position);
-                Log.v(LOG_TAG, "artistName: " + track.name);
 
                 //TODO: Start the audio interface
 
@@ -76,15 +81,33 @@ public class TrackListFragment extends Fragment {
         return rootView;
     }
 
-    private void updateTrackList(String artist) {
-        FetchTracksTask artistsTask = new FetchTracksTask();
-        artistsTask.execute(artist);
+    // Once the view is created, we can populate the list of tracks.
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        FragmentManager fm = getActivity().getSupportFragmentManager();
+        RetainedFragment retainedFragment = (RetainedFragment) fm
+                .findFragmentByTag(RetainedFragment.class.getSimpleName());
+
+        if(retainedFragment != null && retainedFragment.getTracks() != null) {
+            List<Track> list = retainedFragment.getTracks();
+            mTracks.addAll(list);
+        } else {
+            fetchTracks(mArtistId);
+        }
+
+    }
+
+    private void fetchTracks(String artist) {
+        FetchTracksTask tracksTask = new FetchTracksTask();
+        tracksTask.execute(artist);
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        updateTrackList(mArtistId);
+
     }
 
     public void onResume(){
@@ -97,8 +120,6 @@ public class TrackListFragment extends Fragment {
     }
 
     public class FetchTracksTask extends AsyncTask<String, Void, List<Track>> {
-
-        private final String LOG_TAG = FetchTracksTask.class.getSimpleName();
 
         @Override
         protected List<Track> doInBackground(String... params) {
@@ -120,8 +141,15 @@ public class TrackListFragment extends Fragment {
                     displayToast(getString(R.string.toast_no_artists));
                 }
 
-                return tracks;
+                // Set RetainedFragment values for managing instance state.
+                FragmentManager fm = getActivity().getSupportFragmentManager();
+                RetainedFragment retainedFragment = (RetainedFragment) fm
+                        .findFragmentByTag(RetainedFragment.class.getSimpleName());
+                if(retainedFragment != null) {
+                    retainedFragment.setTracks(tracks);
+                }
 
+                return tracks;
 
             } catch(Exception e) {
                 e.printStackTrace();

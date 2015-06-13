@@ -8,8 +8,7 @@ import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity {
 
-    //TODO: For some reason, no images are returned for some artists in ArtistListFragment
-    private final String LOG_TAG = MainActivity.class.getSimpleName();
+    //TODO: Retained fragment works with the Back button, but not with the Up button.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +52,40 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /*
+     * Only called:
+     * 1. After Activity recreation from orientation change.
+     * 2. When returning to this activity from another Activity after this activity has been killed
+     * via memory manager.
+     *
+     * NOT Called when:
+     * 1. Application is first started.
+     * 2. Returning to this activity from another Activity via Back button, and this activity is
+     * currently in a stop state.
+     */
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+    }
 
+    /*
+     * Called when:
+     * 1. A new Activity is started, since this activity would be subject to destruction via
+     * memory management.
+     * 2. On Orientation change, since it destroys this activity.
+     * NOT called when:
+     * 1. Pressing the back button from this activity.
+     */
+    // We're currently just letting the fragments handle their own state.
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 }
 
 

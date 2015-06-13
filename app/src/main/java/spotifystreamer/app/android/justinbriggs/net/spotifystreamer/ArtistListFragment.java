@@ -1,5 +1,6 @@
 package spotifystreamer.app.android.justinbriggs.net.spotifystreamer;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -10,9 +11,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -29,19 +30,16 @@ import kaaes.spotify.webapi.android.models.Pager;
 
 public class ArtistListFragment extends Fragment {
 
-    private final String LOG_TAG = ArtistListFragment.class.getSimpleName();
     public static final String EXTRA_ARTIST_ID = "artist_id"; // The artist id to pass
     public static final String EXTRA_ARTIST_NAME = "artist_name"; // The artist name to past
 
     private ArrayAdapter<Artist> mArtistListAdapter;
     private EditText mEdtSearch;
-    private Button mBtnSearch;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-
     }
 
     @Override
@@ -54,6 +52,7 @@ public class ArtistListFragment extends Fragment {
         RetainedFragment retainedFragment = (RetainedFragment) fm
                 .findFragmentByTag(RetainedFragment.class.getSimpleName());
 
+
         if(retainedFragment != null && retainedFragment.getArtistsPager() != null) {
             List<Artist> list = retainedFragment.getArtistsPager().artists.items;
             artists.addAll(list);
@@ -64,17 +63,23 @@ public class ArtistListFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
 
         mEdtSearch = (EditText)rootView.findViewById(R.id.edt_search);
-
         mEdtSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
 
                 // IME_ACTION_SEARCH defines the keyboard and landscape submit buttons.
                 if (i == EditorInfo.IME_ACTION_SEARCH) {
+
+                    if(mEdtSearch.getText().toString().equalsIgnoreCase("")) {
+                        displayToast(getString(R.string.toast_artist_required));
+                        // Keeps the keyboard visible
+                        return true;
+                    }
                     updateArtistList(mEdtSearch.getText().toString());
-                    mEdtSearch.clearFocus();
                 }
-                // Returning false automatically closes keyboard.
+                // Closes the keyboard
+                InputMethodManager mgr = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                mgr.hideSoftInputFromWindow(mEdtSearch.getWindowToken(), 0);
                 return false;
             }
         });
@@ -107,8 +112,6 @@ public class ArtistListFragment extends Fragment {
 
     public class FetchArtistsTask extends AsyncTask<String, Void, ArtistsPager> {
 
-        private final String LOG_TAG = FetchArtistsTask.class.getSimpleName();
-
         @Override
         protected ArtistsPager doInBackground(String... params) {
 
@@ -128,11 +131,10 @@ public class ArtistListFragment extends Fragment {
                     displayToast(getString(R.string.toast_no_artists));
                 }
 
+                // Set RetainedFragment values for managing instance state.
                 FragmentManager fm = getActivity().getSupportFragmentManager();
                 RetainedFragment retainedFragment = (RetainedFragment) fm
                         .findFragmentByTag(RetainedFragment.class.getSimpleName());
-
-
                 if(retainedFragment != null) {
                     retainedFragment.setArtistsPager(results);
                 }
@@ -168,5 +170,32 @@ public class ArtistListFragment extends Fragment {
         });
 
     }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
 
 }
