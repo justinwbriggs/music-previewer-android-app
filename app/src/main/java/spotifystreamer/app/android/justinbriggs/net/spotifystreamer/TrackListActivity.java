@@ -31,9 +31,7 @@ public class TrackListActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
         //getMenuInflater().inflate(R.menu.menu_detail, menu);
-
         return true;
     }
 

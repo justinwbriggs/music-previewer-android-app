@@ -25,13 +25,10 @@ import kaaes.spotify.webapi.android.models.Track;
 
 public class TrackListFragment extends Fragment {
 
-    private final String LOG_TAG = ArtistListFragment.class.getSimpleName();
-
     private String mArtistId;
     private String mArtistName;
-    private ArrayList<Track> mTracks;
+    private ArrayList<Track> mTracks  = new ArrayList<>();
     private ArrayAdapter<Track> mTrackListAdapter;
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -52,15 +49,9 @@ public class TrackListFragment extends Fragment {
             mArtistName = intent.getStringExtra(ArtistListFragment.EXTRA_ARTIST_NAME);
         }
 
-
-        // So we update the UI until the AsyncTask is finished. It would be better to just
-        // pass in an empty array and return the view, than
-        //populateTrackAdapter();
-
-
         View rootView = inflater.inflate(R.layout.fragment_track_list, container, false);
 
-        mTracks = new ArrayList<>();
+        // Just pass in an empty arraylist, let onCreate handle updating the view.
         mTrackListAdapter = new TrackListAdapter(getActivity(),mTracks);
         ListView listView = (ListView) rootView.findViewById(R.id.listview_track);
         listView.setAdapter(mTrackListAdapter);
@@ -72,8 +63,6 @@ public class TrackListFragment extends Fragment {
                 Track track = mTrackListAdapter.getItem(position);
 
                 //TODO: Start the audio interface
-
-
 
             }
         });
@@ -102,12 +91,6 @@ public class TrackListFragment extends Fragment {
     private void fetchTracks(String artist) {
         FetchTracksTask tracksTask = new FetchTracksTask();
         tracksTask.execute(artist);
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
     }
 
     public void onResume(){

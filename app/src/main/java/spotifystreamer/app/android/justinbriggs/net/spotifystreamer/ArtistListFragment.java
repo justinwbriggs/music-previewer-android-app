@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,7 +21,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
@@ -33,6 +33,7 @@ public class ArtistListFragment extends Fragment {
     public static final String EXTRA_ARTIST_ID = "artist_id"; // The artist id to pass
     public static final String EXTRA_ARTIST_NAME = "artist_name"; // The artist name to past
 
+    private ArrayList<Artist> mArtists = new ArrayList<>();
     private ArrayAdapter<Artist> mArtistListAdapter;
     private EditText mEdtSearch;
 
@@ -46,19 +47,16 @@ public class ArtistListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        ArrayList<Artist> artists = new ArrayList<>();
 
-        FragmentManager fm = getActivity().getSupportFragmentManager();
-        RetainedFragment retainedFragment = (RetainedFragment) fm
-                .findFragmentByTag(RetainedFragment.class.getSimpleName());
+        // Let onResume take care of populating the list view, since it is called when both
+        // the activity is first started, when returning from another activity via the Back button,
+        // and when returning from another activity via the Up button
 
 
-        if(retainedFragment != null && retainedFragment.getArtistsPager() != null) {
-            List<Artist> list = retainedFragment.getArtistsPager().artists.items;
-            artists.addAll(list);
-        }
+        mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtists);
 
-        mArtistListAdapter = new ArtistListAdapter(getActivity(), artists);
+
+
 
         View rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
 
@@ -75,7 +73,7 @@ public class ArtistListFragment extends Fragment {
                         // Keeps the keyboard visible
                         return true;
                     }
-                    updateArtistList(mEdtSearch.getText().toString());
+                    fetchArtists(mEdtSearch.getText().toString());
                 }
                 // Closes the keyboard
                 InputMethodManager mgr = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -96,6 +94,7 @@ public class ArtistListFragment extends Fragment {
                 Intent intent = new Intent(getActivity(), TrackListActivity.class)
                         .putExtra(EXTRA_ARTIST_ID, artist.id)
                         .putExtra(EXTRA_ARTIST_NAME, artist.name);
+                //intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
                 startActivity(intent);
 
@@ -105,7 +104,27 @@ public class ArtistListFragment extends Fragment {
         return rootView;
     }
 
-    private void updateArtistList(String artistName) {
+    @Override
+    public void onResume() {
+
+        FragmentManager fm = getActivity().getSupportFragmentManager();
+        RetainedFragment retainedFragment = (RetainedFragment) fm
+                .findFragmentByTag(RetainedFragment.class.getSimpleName());
+
+        if(retainedFragment != null && retainedFragment.getArtistsPager() != null) {
+            Log.v("asdf", "RetainedFragment: NOT NULL");
+            mArtists = (ArrayList<Artist>)retainedFragment.getArtistsPager().artists.items;
+            mArtists.addAll(mArtists);
+            mArtistListAdapter.addAll(mArtists);
+        } else {
+            Log.v("asdf", "RetainedFragment: NULL");
+
+        }
+
+        super.onResume();
+    }
+
+    private void fetchArtists(String artistName) {
         FetchArtistsTask artistsTask = new FetchArtistsTask();
         artistsTask.execute(artistName);
     }
@@ -176,10 +195,7 @@ public class ArtistListFragment extends Fragment {
         super.onStart();
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
+
 
     @Override
     public void onPause() {
