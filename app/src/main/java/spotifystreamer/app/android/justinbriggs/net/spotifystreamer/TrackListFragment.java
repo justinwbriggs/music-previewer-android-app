@@ -5,7 +5,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
+import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,15 +26,20 @@ import kaaes.spotify.webapi.android.models.Track;
 
 public class TrackListFragment extends Fragment {
 
+    private static final String PLAYER_DIALOG_FRAGMENT_TAG = "PDFTAG";
+
     private String mArtistId;
     private String mArtistName;
     private ArrayList<Track> mTracks  = new ArrayList<>();
     private ArrayAdapter<Track> mTrackListAdapter;
+    boolean mIsLargeLayout;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
 
         // If the Activity was launched in OnePane mode, get the intent args.
         Intent intent = getActivity().getIntent();
@@ -63,9 +68,29 @@ public class TrackListFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
 
-                Track track = mTrackListAdapter.getItem(position);
+                // We handle displaying the dialog fragment here instead of using a Callback, since
+                // the host activity may not exist.
 
-                //TODO: Start the audio interface
+                // Depending on the device size, dialog will either be fullscreen or floating.
+                FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+                PlayerDialogFragment playerDialogFragment = new PlayerDialogFragment();
+
+                if (mIsLargeLayout) {
+
+                    // The device is using a large layout, so show the fragment as a dialog
+                    playerDialogFragment.show(fragmentManager, PLAYER_DIALOG_FRAGMENT_TAG);
+                } else {
+
+                    // The device is smaller, so show the fragment fullscreen
+                    FragmentTransaction transaction = fragmentManager.beginTransaction();
+                    // For a little polish, specify a transition animation
+                    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                    // To make it fullscreen, use the 'content' root view as the container
+                    // for the fragment, which is always the root view for the activity
+                    transaction.add(android.R.id.content, playerDialogFragment)
+                            .addToBackStack(null).commit();
+                }
+
 
             }
         });
@@ -83,12 +108,10 @@ public class TrackListFragment extends Fragment {
                 .findFragmentByTag(RetainedFragment.class.getSimpleName());
 
         if(retainedFragment != null && retainedFragment.getTracks() != null) {
-            Log.v("asfd", "restoringTracks");
             mTracks = (ArrayList<Track>)retainedFragment.getTracks();
             mTrackListAdapter.clear();
             mTrackListAdapter.addAll(mTracks);
         } else {
-            Log.v("asfd", "fetchingTracks");
             fetchTracks(mArtistId);
         }
 

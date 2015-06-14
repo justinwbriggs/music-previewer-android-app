@@ -15,6 +15,7 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
     private boolean mTwoPane;
 
     //TODO: Highlight selected list item.
+    // TODO: Configure all actionbars correctly.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
             // (res/layout-sw600dp). If this view is present, then the activity should be
             // in two-pane mode.
             mTwoPane = true;
-            
+
             // Create a new TrackListFragment that initially displays nothing.
             if (savedInstanceState == null) {
                 getSupportFragmentManager().beginTransaction()

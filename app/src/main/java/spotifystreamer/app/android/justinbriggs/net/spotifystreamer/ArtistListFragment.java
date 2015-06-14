@@ -28,16 +28,8 @@ import kaaes.spotify.webapi.android.models.Pager;
 
 public class ArtistListFragment extends Fragment {
 
-    /**
-     * A callback interface that all activities containing this fragment must
-     * implement. This mechanism allows activities to be notified of item
-     * selections.
-     */
     public interface Callback {
-        /**
-         * DetailFragmentCallback for when an item has been selected.
-         */
-        public void onItemSelected(Artist artist);
+        void onItemSelected(Artist artist);
     }
 
     public static final String EXTRA_ARTIST_ID = "artist_id"; // The artist id to pass
@@ -99,15 +91,6 @@ public class ArtistListFragment extends Fragment {
 
                 Artist artist = mArtistListAdapter.getItem(position);
                 ((Callback)getActivity()).onItemSelected(artist);
-
-                /*
-                Artist artist = mArtistListAdapter.getItem(position);
-                Intent intent = new Intent(getActivity(), TrackListActivity.class)
-                        .putExtra(EXTRA_ARTIST_ID, artist.id)
-                        .putExtra(EXTRA_ARTIST_NAME, artist.name);
-                startActivity(intent);
-                */
-
             }
         });
 
