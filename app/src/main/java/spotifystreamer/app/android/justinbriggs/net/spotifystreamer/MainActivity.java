@@ -1,14 +1,20 @@
 package spotifystreamer.app.android.justinbriggs.net.spotifystreamer;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends AppCompatActivity {
+import kaaes.spotify.webapi.android.models.Artist;
 
-    //TODO: Retained fragment works with the Back button, but not with the Up button.
+public class MainActivity extends AppCompatActivity implements ArtistListFragment.Callback {
+
+    private static final String TRACK_LIST_FRAGMENT_TAG = "TLFTAG";
+    private boolean mTwoPane;
+
+    //TODO: Highlight selected list item.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +32,25 @@ public class MainActivity extends AppCompatActivity {
             retainedFragment = new RetainedFragment();
             fm.beginTransaction().add(retainedFragment,
                     RetainedFragment.class.getSimpleName()).commit();
+        }
+
+        if (findViewById(R.id.track_list_container) != null) {
+
+            // The track_list_container container view will be present only in the large-screen layouts
+            // (res/layout-sw600dp). If this view is present, then the activity should be
+            // in two-pane mode.
+            mTwoPane = true;
+            
+            // Create a new TrackListFragment that initially displays nothing.
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.track_list_container, new TrackListFragment(), TRACK_LIST_FRAGMENT_TAG)
+                        .commit();
+            }
+
+        } else {
+            mTwoPane = false;
+            getSupportActionBar().setElevation(0f);
         }
 
     }
@@ -83,8 +108,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    public void onItemSelected(Artist artist) {
+
+        if(mTwoPane) {
+
+            // Update the fragment with new results.
+            FragmentManager fm = getSupportFragmentManager();
+            TrackListFragment trackListFragment = (TrackListFragment) fm
+                    .findFragmentByTag(TRACK_LIST_FRAGMENT_TAG);
+            trackListFragment.fetchTracks(artist.id);
+
+        } else {
+
+            // Start a new TrackListActivity
+            Intent intent = new Intent(getApplicationContext(), TrackListActivity.class)
+                    .putExtra(ArtistListFragment.EXTRA_ARTIST_ID, artist.id)
+                    .putExtra(ArtistListFragment.EXTRA_ARTIST_NAME, artist.name);
+            startActivity(intent);
+        }
+
     }
 }
 

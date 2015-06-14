@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,12 +35,8 @@ public class TrackListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-    }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-
+        // If the Activity was launched in OnePane mode, get the intent args.
         Intent intent = getActivity().getIntent();
 
         if(intent != null && intent.hasExtra(ArtistListFragment.EXTRA_ARTIST_ID)) {
@@ -49,10 +46,16 @@ public class TrackListFragment extends Fragment {
             mArtistName = intent.getStringExtra(ArtistListFragment.EXTRA_ARTIST_NAME);
         }
 
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+
         View rootView = inflater.inflate(R.layout.fragment_track_list, container, false);
 
-        // Just pass in an empty arraylist, let onCreate handle updating the view.
-        mTrackListAdapter = new TrackListAdapter(getActivity(),mTracks);
+        // Just pass in an empty arraylist, let onViewCreated handle updating the view.
+        mTrackListAdapter = new TrackListAdapter(getActivity(), mTracks);
         ListView listView = (ListView) rootView.findViewById(R.id.listview_track);
         listView.setAdapter(mTrackListAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -80,26 +83,32 @@ public class TrackListFragment extends Fragment {
                 .findFragmentByTag(RetainedFragment.class.getSimpleName());
 
         if(retainedFragment != null && retainedFragment.getTracks() != null) {
+            Log.v("asfd", "restoringTracks");
             mTracks = (ArrayList<Track>)retainedFragment.getTracks();
             mTrackListAdapter.clear();
-            mTracks.addAll(mTracks);
+            mTrackListAdapter.addAll(mTracks);
         } else {
+            Log.v("asfd", "fetchingTracks");
             fetchTracks(mArtistId);
         }
 
     }
 
-    private void fetchTracks(String artist) {
+    public void fetchTracks(String artistId) {
         FetchTracksTask tracksTask = new FetchTracksTask();
-        tracksTask.execute(artist);
+        tracksTask.execute(artistId);
     }
 
     public void onResume(){
         super.onResume();
 
+        //TODO: Handle this
         // Set subtitle
-        ((TrackListActivity) getActivity())
-                .setActionBarSubtitle(mArtistName);
+
+        if(getActivity().getActionBar() != null){
+            ((TrackListActivity) getActivity())
+                    .setActionBarSubtitle(mArtistName);
+        }
 
     }
 
