@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -74,6 +75,9 @@ public class TrackListFragment extends Fragment {
                 // Depending on the device size, dialog will either be fullscreen or floating.
                 FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                 PlayerDialogFragment playerDialogFragment = new PlayerDialogFragment();
+
+                Log.v("asdf", "mIsLargeLayout: " + mIsLargeLayout);
+
 
                 if (mIsLargeLayout) {
 
