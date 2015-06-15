@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -69,6 +68,18 @@ public class TrackListFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
 
+                // We'll need to pass position to PlayerDialogFragment so it can keep track of
+                // where in the list it is currently.
+
+
+                // Save the current track in RetainedFragment
+                Track track = mTrackListAdapter.getItem(position);
+                FragmentManager fm = getActivity().getSupportFragmentManager();
+                RetainedFragment retainedFragment = (RetainedFragment) fm
+                        .findFragmentByTag(RetainedFragment.class.getSimpleName());
+                retainedFragment.setTrack(track);
+
+
                 // We handle displaying the dialog fragment here instead of using a Callback, since
                 // the host activity may not exist.
 
@@ -76,15 +87,10 @@ public class TrackListFragment extends Fragment {
                 FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                 PlayerDialogFragment playerDialogFragment = new PlayerDialogFragment();
 
-                Log.v("asdf", "mIsLargeLayout: " + mIsLargeLayout);
-
-
                 if (mIsLargeLayout) {
-
                     // The device is using a large layout, so show the fragment as a dialog
                     playerDialogFragment.show(fragmentManager, PLAYER_DIALOG_FRAGMENT_TAG);
                 } else {
-
                     // The device is smaller, so show the fragment fullscreen
                     FragmentTransaction transaction = fragmentManager.beginTransaction();
                     // For a little polish, specify a transition animation
@@ -94,7 +100,6 @@ public class TrackListFragment extends Fragment {
                     transaction.add(android.R.id.content, playerDialogFragment)
                             .addToBackStack(null).commit();
                 }
-
 
             }
         });

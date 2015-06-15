@@ -6,13 +6,15 @@
     <!-- Media player needs to keep the screen from dimming or the processor from sleeping -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
-
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-        <activity
+
+        <service android:enabled="true" android:name=".service.SongService" />
+
+         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
             android:label="@string/app_name"

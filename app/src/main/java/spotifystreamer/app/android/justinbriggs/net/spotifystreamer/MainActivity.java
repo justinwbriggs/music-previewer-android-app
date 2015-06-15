@@ -16,6 +16,7 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
 
     //TODO: Highlight selected list item.
     // TODO: Configure all actionbars correctly.
+    // TODO: Use ViewGroup pattern for list items
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

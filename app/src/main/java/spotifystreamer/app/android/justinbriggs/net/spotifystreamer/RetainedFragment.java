@@ -22,6 +22,9 @@ public class RetainedFragment extends Fragment {
 
     private List<Artist> artists;
     private List<Track> tracks;
+    // The current track being played.
+    private Track track;
+    private int position;
 
     // this method is only called once for this fragment
     @Override
@@ -45,5 +48,21 @@ public class RetainedFragment extends Fragment {
 
     public void setTracks(List<Track> tracks) {
         this.tracks = tracks;
+    }
+
+    public Track getTrack() {
+        return track;
+    }
+
+    public void setTrack(Track track) {
+        this.track = track;
+    }
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
     }
 }
