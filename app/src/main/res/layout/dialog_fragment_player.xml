@@ -69,6 +69,7 @@
             android:id="@+id/ib_previous"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:clickable="false"
             android:src="@android:drawable/ic_media_previous"/>
 
         <ImageButton
@@ -76,8 +77,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:visibility="invisible"
-            android:src="@android:drawable/ic_media_play"/>
+            android:clickable="false"
+            android:src="@android:drawable/ic_media_play" />
 
         <ImageButton
             android:id="@+id/ib_next"
@@ -85,9 +86,8 @@
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
+            android:clickable="false"
             android:src="@android:drawable/ic_media_next"/>
-
-
 
     </RelativeLayout>
 
