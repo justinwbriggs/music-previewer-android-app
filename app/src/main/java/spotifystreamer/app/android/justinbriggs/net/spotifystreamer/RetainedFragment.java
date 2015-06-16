@@ -22,6 +22,7 @@ public class RetainedFragment extends Fragment {
 
     private List<Artist> artists;
     private List<Track> tracks;
+
     // The current track being played.
     private Track track;
     private int position;
@@ -65,4 +66,5 @@ public class RetainedFragment extends Fragment {
     public void setPosition(int position) {
         this.position = position;
     }
+
 }

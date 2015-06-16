@@ -1,10 +1,14 @@
 package spotifystreamer.app.android.justinbriggs.net.spotifystreamer;
 
 import android.app.Dialog;
-import android.media.AudioManager;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
@@ -18,12 +22,15 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.models.Track;
+import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.service.IPlayerControls;
+import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.service.SongService;
 
-public class PlayerDialogFragment extends DialogFragment {
+public class PlayerDialogFragment extends DialogFragment implements ServiceConnection {
+
+    private IPlayerControls mService = null;
 
     private List<Track> mTracks;
     private Track mTrack;
@@ -40,8 +47,28 @@ public class PlayerDialogFragment extends DialogFragment {
     private TextView mTxtTrack;
 
     @Override
+    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+
+        mService = (IPlayerControls)iBinder;
+
+
+        enableButtons();
+
+    }
+
+
+
+    @Override
+    public void onServiceDisconnected(ComponentName componentName) {
+        disconnect();
+
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Log.v("asdf", "onCreate()");
 
         FragmentManager fm = getActivity().getSupportFragmentManager();
         RetainedFragment retainedFragment = (RetainedFragment) fm
@@ -57,13 +84,46 @@ public class PlayerDialogFragment extends DialogFragment {
         if(retainedFragment != null) {
             mPosition = retainedFragment.getPosition();
         }
+
     }
+
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        Intent intent = new Intent(getActivity(),
+                SongService.class);
+        intent.putExtra(SongService.TRACK_URL_KEY, mTrack.preview_url);
+        intent.putExtra(SongService.TRACK_NAME_KEY, mTrack.name);
+
+        getActivity().getApplicationContext()
+                .bindService(intent, this,
+                        Context.BIND_AUTO_CREATE);
+
+    }
+
+    @Override
+    public void onDestroy() {
+        getActivity().getApplicationContext().unbindService(this);
+        disconnect();
+        super.onDestroy();
+    }
+
+    private void disconnect() {
+        mService = null;
+        disableButtons();
+    }
+
 
     /** The system calls this to get the DialogFragment's layout, regardless
      of whether it's being displayed as a dialog or an embedded fragment. */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        // TODO: Figure out why this is necessary.
+        setRetainInstance(true);
 
         View rootView = inflater.inflate(R.layout.dialog_fragment_player, container, false);
 
@@ -76,31 +136,27 @@ public class PlayerDialogFragment extends DialogFragment {
         mTxtTrack = (TextView)rootView.findViewById(R.id.txt_track);
 
         // Create and configure new player and set onPreparedListener
-        if(mPlayer == null) {
-
-            mPlayer = new MediaPlayer();
-            mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            setPlayerDataSource();
-
-            mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mediaPlayer) {
-                    // Enable the buttons once the player is prepared.
-                    enableButtons();
-                }
-            });
-
-        }
+//        if(mPlayer == null) {
+//
+//            mPlayer = new MediaPlayer();
+//            mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+//            setPlayerDataSource();
+//
+//            mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+//                @Override
+//                public void onPrepared(MediaPlayer mediaPlayer) {
+//                    // Enable the buttons once the player is prepared.
+//                    enableButtons();
+//                }
+//            });
+//
+//        }
 
         mIbPausePlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                if(mPlayer.isPlaying()) {
-                    mPlayer.pause();
-                } else {
-                    mPlayer.start();
-                }
+                mService.play();
 
             }
         });
@@ -116,9 +172,8 @@ public class PlayerDialogFragment extends DialogFragment {
                 }
                 mTrack = mTracks.get(mPosition);
 
-                // We'll need to disable the buttons again, which onPrepared will handle re-enabling
-                disableButtons();
-                setPlayerDataSource();
+                mService.navigate(mTrack.preview_url);
+                //disableButtons();
                 updateUi();
 
             }
@@ -134,8 +189,9 @@ public class PlayerDialogFragment extends DialogFragment {
                     mPosition = 0;
                 }
                 mTrack = mTracks.get(mPosition);
-                disableButtons();
-                setPlayerDataSource();
+
+                //disableButtons();
+                mService.navigate(mTrack.preview_url);
                 updateUi();
 
             }
@@ -187,9 +243,8 @@ public class PlayerDialogFragment extends DialogFragment {
         mTxtAlbum.setText(mTrack.album.name);
         try {
 
-            // TODO: Verify this returns the appropriate image size.
+            // 0 should be the largest image
             String imageUrl = mTrack.album.images.get(0).url;
-            // Always get the last image, which should be the 64 px size, but may not be included.
             Picasso.with(getActivity()).load(imageUrl)
                     .placeholder(R.drawable.ic_launcher)
                     .into(mIvAlbum);
@@ -200,27 +255,6 @@ public class PlayerDialogFragment extends DialogFragment {
 
     }
 
-
-    private void setPlayerDataSource() {
-
-        // Reset the player to avoid state exceptions.
-        mPlayer.reset();
-
-        try {
-            mPlayer.setDataSource(mTrack.preview_url);
-            //TODO: Confirm that this keeps media off main thread.
-            mPlayer.prepareAsync();
-        } catch (IOException e) {
-            e.printStackTrace();
-            //TODO: File may not exist. Handle this.
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            //TODO: File may not exist. Handle this.
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        }
-
-    }
 
     /** The system calls this only when creating the layout in a dialog. */
     @Override
@@ -235,5 +269,15 @@ public class PlayerDialogFragment extends DialogFragment {
         return dialog;
     }
 
+    private void releasePlayer() {
+
+        if(mPlayer != null) {
+            if(mPlayer.isPlaying()) {
+                mPlayer.stop();
+            }
+            mPlayer.release();
+            mPlayer = null;
+        }
+    }
 
 }
