@@ -1,17 +1,15 @@
 package spotifystreamer.app.android.justinbriggs.net.spotifystreamer;
 
 import android.app.Dialog;
-import android.content.ComponentName;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
+import android.content.IntentFilter;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,12 +23,12 @@ import com.squareup.picasso.Picasso;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.models.Track;
-import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.service.IPlayerControls;
 import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.service.SongService;
 
-public class PlayerDialogFragment extends DialogFragment implements ServiceConnection {
+public class PlayerDialogFragment extends DialogFragment {
 
-    private IPlayerControls mService = null;
+    boolean mHasRun;
+    BroadcastReceiver mReceiver;
 
     private List<Track> mTracks;
     private Track mTrack;
@@ -46,73 +44,30 @@ public class PlayerDialogFragment extends DialogFragment implements ServiceConne
     private ImageView mIvAlbum;
     private TextView mTxtTrack;
 
-    @Override
-    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-
-        mService = (IPlayerControls)iBinder;
-
-
-        enableButtons();
-
-    }
-
-
-
-    @Override
-    public void onServiceDisconnected(ComponentName componentName) {
-        disconnect();
-
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.v("asdf", "onCreate()");
-
+        // Get the track info from the RetainedFragment
         FragmentManager fm = getActivity().getSupportFragmentManager();
         RetainedFragment retainedFragment = (RetainedFragment) fm
                 .findFragmentByTag(RetainedFragment.class.getSimpleName());
 
-        if(retainedFragment != null && retainedFragment.getTrack() != null) {
-            mTrack = retainedFragment.getTrack();
-        }
-        if(retainedFragment != null && retainedFragment.getTracks() != null) {
-            mTracks = retainedFragment.getTracks();
-        }
-
         if(retainedFragment != null) {
+            mTrack = retainedFragment.getTrack();
+            //TODO: Why did I need to record the track in RetainedFragment?
+            mTracks = retainedFragment.getTracks();
             mPosition = retainedFragment.getPosition();
         }
 
-    }
+        // Register the BroadcastReceiver so SongService can send event notifications
+        mReceiver = new Receiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(SongService.BROADCAST_READY);
+        intentFilter.addAction(SongService.BROADCAST_NOT_READY);
+        getActivity().registerReceiver(mReceiver, intentFilter);
 
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        Intent intent = new Intent(getActivity(),
-                SongService.class);
-        intent.putExtra(SongService.TRACK_URL_KEY, mTrack.preview_url);
-        intent.putExtra(SongService.TRACK_NAME_KEY, mTrack.name);
-
-        getActivity().getApplicationContext()
-                .bindService(intent, this,
-                        Context.BIND_AUTO_CREATE);
-
-    }
-
-    @Override
-    public void onDestroy() {
-        getActivity().getApplicationContext().unbindService(this);
-        disconnect();
-        super.onDestroy();
-    }
-
-    private void disconnect() {
-        mService = null;
-        disableButtons();
     }
 
 
@@ -122,7 +77,7 @@ public class PlayerDialogFragment extends DialogFragment implements ServiceConne
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        // TODO: Figure out why this is necessary.
+        // TODO: Necessary?
         setRetainInstance(true);
 
         View rootView = inflater.inflate(R.layout.dialog_fragment_player, container, false);
@@ -135,28 +90,13 @@ public class PlayerDialogFragment extends DialogFragment implements ServiceConne
         mIvAlbum = (ImageView)rootView.findViewById(R.id.iv_album);
         mTxtTrack = (TextView)rootView.findViewById(R.id.txt_track);
 
-        // Create and configure new player and set onPreparedListener
-//        if(mPlayer == null) {
-//
-//            mPlayer = new MediaPlayer();
-//            mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//            setPlayerDataSource();
-//
-//            mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-//                @Override
-//                public void onPrepared(MediaPlayer mediaPlayer) {
-//                    // Enable the buttons once the player is prepared.
-//                    enableButtons();
-//                }
-//            });
-//
-//        }
-
         mIbPausePlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                mService.play();
+                Intent intent = new Intent(getActivity(), SongService.class);
+                intent.setAction(SongService.ACTION_PLAY_PAUSE);
+                getActivity().startService(intent);
 
             }
         });
@@ -171,11 +111,8 @@ public class PlayerDialogFragment extends DialogFragment implements ServiceConne
                     mPosition = mTracks.size() - 1 ;
                 }
                 mTrack = mTracks.get(mPosition);
-
-                mService.navigate(mTrack.preview_url);
-                //disableButtons();
-                updateUi();
-
+                startNewTrack();
+                
             }
         });
 
@@ -189,10 +126,7 @@ public class PlayerDialogFragment extends DialogFragment implements ServiceConne
                     mPosition = 0;
                 }
                 mTrack = mTracks.get(mPosition);
-
-                //disableButtons();
-                mService.navigate(mTrack.preview_url);
-                updateUi();
+                startNewTrack();
 
             }
         });
@@ -200,10 +134,27 @@ public class PlayerDialogFragment extends DialogFragment implements ServiceConne
         return rootView;
     }
 
+    private void startNewTrack() {
+
+        Intent intent = new Intent(getActivity(), SongService.class);
+        intent.setAction(SongService.ACTION_NEW_TRACK);
+        intent.putExtra(SongService.TRACK_URL_KEY, mTrack.preview_url);
+        getActivity().startService(intent);
+        updateUi();
+
+    }
+
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        disableButtons();
+
+        // Only want this one time on startup. Prevents the orientation change from firing.
+        if(!mHasRun) {
+            startNewTrack();
+            disableButtons();
+            mHasRun = true;
+        }
+
         updateUi();
     }
 
@@ -269,15 +220,36 @@ public class PlayerDialogFragment extends DialogFragment implements ServiceConne
         return dialog;
     }
 
-    private void releasePlayer() {
 
-        if(mPlayer != null) {
-            if(mPlayer.isPlaying()) {
-                mPlayer.stop();
+    @Override
+    public void onStart() {
+
+
+
+        super.onStart();
+    }
+
+    @Override
+    public void onStop() {
+        getActivity().unregisterReceiver(mReceiver);
+        super.onStop();
+    }
+
+    private class Receiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            if(intent.getAction().equals(SongService.BROADCAST_READY)) {
+                enableButtons();
+            } else if(intent.getAction().equals(SongService.BROADCAST_NOT_READY)) {
+                disableButtons();
+            } else {
+                disableButtons();
             }
-            mPlayer.release();
-            mPlayer = null;
+
         }
+
     }
 
 }
