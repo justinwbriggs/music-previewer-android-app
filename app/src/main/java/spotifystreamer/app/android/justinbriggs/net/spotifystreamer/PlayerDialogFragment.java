@@ -10,12 +10,14 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -38,6 +40,7 @@ public class PlayerDialogFragment extends DialogFragment {
 
     private TextView mTxtArtist;
     private TextView mTxtAlbum;
+    private SeekBar mSeekBar;
 
     private ImageButton mIbPrevious;
     private ImageButton mIbPausePlay;
@@ -78,6 +81,7 @@ public class PlayerDialogFragment extends DialogFragment {
 
         View rootView = inflater.inflate(R.layout.dialog_fragment_player, container, false);
 
+        mSeekBar = (SeekBar)rootView.findViewById(R.id.seek_bar);
         mIbPrevious = (ImageButton)rootView.findViewById(R.id.ib_previous);
         mIbPausePlay = (ImageButton)rootView.findViewById(R.id.ib_pause_play);
         mIbNext = (ImageButton)rootView.findViewById(R.id.ib_next);
@@ -85,6 +89,7 @@ public class PlayerDialogFragment extends DialogFragment {
         mTxtAlbum = (TextView)rootView.findViewById(R.id.txt_album);
         mIvAlbum = (ImageView)rootView.findViewById(R.id.iv_album);
         mTxtTrack = (TextView)rootView.findViewById(R.id.txt_track);
+
 
         mIbPausePlay.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -193,6 +198,28 @@ public class PlayerDialogFragment extends DialogFragment {
 
     private void updateUi() {
 
+        // Set the seekBar
+        // All previews are 30 seconds, but the api returns the total track length for some reason.
+        mSeekBar.setMax(30000);
+
+        // This is for updating the current track when the user drags the seekBar
+        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
         mTxtArtist.setText(mTrack.artists.get(0).name);
         mTxtAlbum.setText(mTrack.album.name);
         try {
@@ -224,14 +251,6 @@ public class PlayerDialogFragment extends DialogFragment {
     }
 
     @Override
-    public void onStop() {
-
-        // TODO: this gives me an error on orientation change
-        //getActivity().unregisterReceiver(mReceiver);
-        super.onStop();
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
         registerReceiver();
@@ -260,20 +279,17 @@ public class PlayerDialogFragment extends DialogFragment {
         intentFilter.addAction(SongService.BROADCAST_PLAY);
         intentFilter.addAction(SongService.BROADCAST_PAUSE);
         intentFilter.addAction(SongService.BROADCAST_COMPLETE);
+        intentFilter.addAction(SongService.BROADCAST_TRACK_POSITION);
         // Use LocalBroadcastManager unless you plan on receiving broadcasts from other apps.
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mReceiver, intentFilter);
     }
 
     // TODO: You could probably do all your ui updates here
-    // TODO: You should be able to regeister this in the manifest.
+    // TODO: You should be able to register this in the manifest.
     private class Receiver extends BroadcastReceiver {
-
-
-
 
         @Override
         public void onReceive(Context context, Intent intent) {
-
 
             if(intent.getAction().equals(SongService.BROADCAST_READY)) {
                 enableButtons();
@@ -285,6 +301,14 @@ public class PlayerDialogFragment extends DialogFragment {
                 mIbPausePlay.setImageResource(android.R.drawable.ic_media_play);
             } else if(intent.getAction().equals(SongService.BROADCAST_COMPLETE)) {
                 playNextTrack();
+            } else if(intent.getAction().equals(SongService.BROADCAST_TRACK_POSITION)) {
+                // Update the seekbar in real time.
+                int progress = intent.getIntExtra(SongService.BROADCAST_TRACK_POSITION_KEY,0);
+
+                Log.v("asdf", "total: " + mSeekBar.getMax());
+                Log.v("asdf", "progress: " + progress);
+                mSeekBar.setProgress(progress);
+
             }
 
         }

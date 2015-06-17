@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
@@ -23,7 +24,12 @@ public class SongService extends Service {
     public static final String BROADCAST_PAUSE = "broadcast_pause";
     public static final String BROADCAST_COMPLETE = "broadcast_complete";
 
+    public static final String BROADCAST_TRACK_POSITION_KEY = "broadcast_track_position_key";
+    public static final String BROADCAST_TRACK_POSITION = "broadcast_track_position";
+
     private MediaPlayer mPlayer;
+    private Handler mHandler = new Handler();
+    private Runnable mRunnable;
 
     public SongService() {
 
@@ -32,8 +38,11 @@ public class SongService extends Service {
         mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mediaPlayer) {
+
                 mPlayer.start();
                 sendPlayerBroadcast(BROADCAST_READY);
+                // The runnable will broadcast track progress.
+                mRunnable.run();
             }
         });
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -48,12 +57,23 @@ public class SongService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        //Log.v("asdf", "action: " + intent.getAction());
+        // Send a broadcast every second to notify the UI to update seekbar.
+        mRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if(mPlayer != null){
+                    int currentPosition = mPlayer.getCurrentPosition();
+                    sendProgressBroadcast(currentPosition);
+                }
+                mHandler.postDelayed(this, 1000);
+            }
+        };
 
-        // When the host is recreated, there is no reason to take any intent commands, as the
-        //
 
+        // When the host is recreated, there is no reason to process any intent actions
+        // as there is no action set
         if(intent != null) {
+
             // Handles any time a new track is played (oncreate, previous, next)
             if (intent.getAction().equals(ACTION_NEW_TRACK)) {
                 setPlayerDataSource(intent.getStringExtra(SongService.TRACK_URL_KEY));
@@ -64,11 +84,11 @@ public class SongService extends Service {
                 if (mPlayer.isPlaying()) {
                     mPlayer.pause();
                     sendPlayerBroadcast(BROADCAST_PAUSE);
+
                 } else {
                     sendPlayerBroadcast(BROADCAST_PLAY);
                     mPlayer.start();
                 }
-
 
             }
         }
@@ -79,7 +99,15 @@ public class SongService extends Service {
     public void sendPlayerBroadcast(String action) {
         Intent i = new Intent();
         i.setAction(action);
-        // Use LocalBroadcastManager, it doesn't
+        // Use LocalBroadcastManager, more secure when you don't have to share info.
+        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
+    }
+
+    public void sendProgressBroadcast(int progress) {
+        Intent i = new Intent();
+        i.setAction(BROADCAST_TRACK_POSITION);
+        i.putExtra(BROADCAST_TRACK_POSITION_KEY, progress);
+        // Use LocalBroadcastManager, more secure when you don't have to share info.
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
     }
 
