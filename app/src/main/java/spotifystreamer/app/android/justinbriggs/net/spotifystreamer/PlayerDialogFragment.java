@@ -100,35 +100,42 @@ public class PlayerDialogFragment extends DialogFragment {
         mIbPrevious.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                // Go to the last track position if you are on the first.
-                mPosition--;
-                if(mPosition == -1) {
-                    mPosition = mTracks.size() - 1 ;
-                }
-                mTrack = mTracks.get(mPosition);
-                startNewTrack();
-
+                playPreviousTrack();
             }
         });
 
         mIbNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                // Go to the first track position if you are on the last.
-                mPosition++;
-                if(mPosition == mTracks.size()) {
-                    mPosition = 0;
-                }
-                mTrack = mTracks.get(mPosition);
-                startNewTrack();
-
+                playNextTrack();
             }
         });
 
         return rootView;
     }
+
+
+    public void playNextTrack() {
+        // Go to the first track position if you are on the last.
+        mPosition++;
+        if(mPosition == mTracks.size()) {
+            mPosition = 0;
+        }
+        mTrack = mTracks.get(mPosition);
+        startNewTrack();
+
+    }
+
+    public void playPreviousTrack() {
+        // Go to the last track position if you are on the first.
+        mPosition--;
+        if(mPosition == -1) {
+            mPosition = mTracks.size() - 1 ;
+        }
+        mTrack = mTracks.get(mPosition);
+        startNewTrack();
+    }
+
 
     private void startNewTrack() {
 
@@ -252,6 +259,7 @@ public class PlayerDialogFragment extends DialogFragment {
         intentFilter.addAction(SongService.BROADCAST_NOT_READY);
         intentFilter.addAction(SongService.BROADCAST_PLAY);
         intentFilter.addAction(SongService.BROADCAST_PAUSE);
+        intentFilter.addAction(SongService.BROADCAST_COMPLETE);
         // Use LocalBroadcastManager unless you plan on receiving broadcasts from other apps.
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mReceiver, intentFilter);
     }
@@ -275,6 +283,8 @@ public class PlayerDialogFragment extends DialogFragment {
                 mIbPausePlay.setImageResource(android.R.drawable.ic_media_pause);
             } else if(intent.getAction().equals(SongService.BROADCAST_PAUSE)) {
                 mIbPausePlay.setImageResource(android.R.drawable.ic_media_play);
+            } else if(intent.getAction().equals(SongService.BROADCAST_COMPLETE)) {
+                playNextTrack();
             }
 
         }

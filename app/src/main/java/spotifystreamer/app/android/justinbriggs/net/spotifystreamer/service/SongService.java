@@ -21,6 +21,7 @@ public class SongService extends Service {
     public static final String BROADCAST_NOT_READY = "broadcast_not_ready";
     public static final String BROADCAST_PLAY = "broadcast_play";
     public static final String BROADCAST_PAUSE = "broadcast_pause";
+    public static final String BROADCAST_COMPLETE = "broadcast_complete";
 
     private MediaPlayer mPlayer;
 
@@ -33,6 +34,12 @@ public class SongService extends Service {
             public void onPrepared(MediaPlayer mediaPlayer) {
                 mPlayer.start();
                 sendPlayerBroadcast(BROADCAST_READY);
+            }
+        });
+        mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                sendPlayerBroadcast(BROADCAST_COMPLETE);
             }
         });
 
