@@ -5,11 +5,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +25,8 @@ import java.util.List;
 import kaaes.spotify.webapi.android.models.Track;
 import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.service.SongService;
 
+//TODO: Handle the end of track
+
 public class PlayerDialogFragment extends DialogFragment {
 
     boolean mHasRun;
@@ -33,7 +35,6 @@ public class PlayerDialogFragment extends DialogFragment {
     private List<Track> mTracks;
     private Track mTrack;
     private int mPosition;
-    private MediaPlayer mPlayer;
 
     private TextView mTxtArtist;
     private TextView mTxtAlbum;
@@ -61,12 +62,7 @@ public class PlayerDialogFragment extends DialogFragment {
             mPosition = retainedFragment.getPosition();
         }
 
-        // Register the BroadcastReceiver so SongService can send event notifications
-        mReceiver = new Receiver();
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(SongService.BROADCAST_READY);
-        intentFilter.addAction(SongService.BROADCAST_NOT_READY);
-        getActivity().registerReceiver(mReceiver, intentFilter);
+
 
     }
 
@@ -112,7 +108,7 @@ public class PlayerDialogFragment extends DialogFragment {
                 }
                 mTrack = mTracks.get(mPosition);
                 startNewTrack();
-                
+
             }
         });
 
@@ -220,32 +216,65 @@ public class PlayerDialogFragment extends DialogFragment {
         return dialog;
     }
 
-
-    @Override
-    public void onStart() {
-
-
-
-        super.onStart();
-    }
-
     @Override
     public void onStop() {
-        getActivity().unregisterReceiver(mReceiver);
+
+        // TODO: this gives me an error on orientation change
+        //getActivity().unregisterReceiver(mReceiver);
         super.onStop();
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        registerReceiver();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        // Peculiar behaviour, exception happens on some configuration changes
+        // Could be a bug: https://code.google.com/p/android/issues/detail?id=6191
+        try {
+            getActivity().unregisterReceiver(mReceiver);
+        } catch(IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void registerReceiver() {
+
+        // Register the BroadcastReceiver so SongService can send event notifications
+        mReceiver = new Receiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(SongService.BROADCAST_READY);
+        intentFilter.addAction(SongService.BROADCAST_NOT_READY);
+        intentFilter.addAction(SongService.BROADCAST_PLAY);
+        intentFilter.addAction(SongService.BROADCAST_PAUSE);
+        // Use LocalBroadcastManager unless you plan on receiving broadcasts from other apps.
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mReceiver, intentFilter);
+    }
+
+    // TODO: You could probably do all your ui updates here
+    // TODO: You should be able to regeister this in the manifest.
     private class Receiver extends BroadcastReceiver {
+
+
+
 
         @Override
         public void onReceive(Context context, Intent intent) {
+
 
             if(intent.getAction().equals(SongService.BROADCAST_READY)) {
                 enableButtons();
             } else if(intent.getAction().equals(SongService.BROADCAST_NOT_READY)) {
                 disableButtons();
-            } else {
-                disableButtons();
+            } else if(intent.getAction().equals(SongService.BROADCAST_PLAY)) {
+                mIbPausePlay.setImageResource(android.R.drawable.ic_media_pause);
+            } else if(intent.getAction().equals(SongService.BROADCAST_PAUSE)) {
+                mIbPausePlay.setImageResource(android.R.drawable.ic_media_play);
             }
 
         }

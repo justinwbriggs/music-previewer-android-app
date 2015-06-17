@@ -6,7 +6,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.util.Log;
+import android.support.v4.content.LocalBroadcastManager;
 
 import java.io.IOException;
 
@@ -14,14 +14,13 @@ public class SongService extends Service {
 
 
     public static final String TRACK_URL_KEY = "track_url_key";
-    public static final String TRACK_NAME_KEY = "track_name_key";
-    public static final String COMMAND_KEY = "command_key";
     public static final String ACTION_PLAY_PAUSE = "action_play_pause";
     public static final String ACTION_NEW_TRACK = "action_new_track";
 
-    public static final String BROADCAST_KEY = "broadcast_key";
     public static final String BROADCAST_READY = "broadcast_ready";
     public static final String BROADCAST_NOT_READY = "broadcast_not_ready";
+    public static final String BROADCAST_PLAY = "broadcast_play";
+    public static final String BROADCAST_PAUSE = "broadcast_pause";
 
     private MediaPlayer mPlayer;
 
@@ -32,14 +31,8 @@ public class SongService extends Service {
         mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mediaPlayer) {
-
                 mPlayer.start();
-
-                // Send a broadcast to the host
-                Intent intent = new Intent();
-                intent.setAction(BROADCAST_READY);
-                sendBroadcast(intent);
-
+                sendPlayerBroadcast(BROADCAST_READY);
             }
         });
 
@@ -48,23 +41,40 @@ public class SongService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
+        //Log.v("asdf", "action: " + intent.getAction());
 
-        // Handles any time a new track is played (oncreate, previous, next)
-        if (intent.getAction().equals(ACTION_NEW_TRACK)) {
-            setPlayerDataSource(intent.getStringExtra(SongService.TRACK_URL_KEY));
-        }
+        // When the host is recreated, there is no reason to take any intent commands, as the
+        //
 
-        if (intent.getAction().equals(ACTION_PLAY_PAUSE)) {
-            if(mPlayer.isPlaying()) {
-                mPlayer.pause();
-            } else {
-                mPlayer.start();
+        if(intent != null) {
+            // Handles any time a new track is played (oncreate, previous, next)
+            if (intent.getAction().equals(ACTION_NEW_TRACK)) {
+                setPlayerDataSource(intent.getStringExtra(SongService.TRACK_URL_KEY));
+            }
+
+            if (intent.getAction().equals(ACTION_PLAY_PAUSE)) {
+
+                if (mPlayer.isPlaying()) {
+                    mPlayer.pause();
+                    sendPlayerBroadcast(BROADCAST_PAUSE);
+                } else {
+                    sendPlayerBroadcast(BROADCAST_PLAY);
+                    mPlayer.start();
+                }
+
+
             }
         }
         return super.onStartCommand(intent, flags, startId);
 
     }
 
+    public void sendPlayerBroadcast(String action) {
+        Intent i = new Intent();
+        i.setAction(action);
+        // Use LocalBroadcastManager, it doesn't
+        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
+    }
 
     @Nullable
     @Override
@@ -74,13 +84,7 @@ public class SongService extends Service {
 
     private void setPlayerDataSource(String trackUrl) {
 
-        Log.v("asdf", "setPlayerDataSource");
-
-        // Send a broadcast to the host
-        Intent intent = new Intent();
-        intent.setAction(BROADCAST_NOT_READY);
-        sendBroadcast(intent);
-
+        sendPlayerBroadcast(BROADCAST_NOT_READY);
 
         // Reset the player to avoid state exceptions.
         mPlayer.reset();
