@@ -4,6 +4,7 @@ package spotifystreamer.app.android.justinbriggs.net.spotifystreamer;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import kaaes.spotify.webapi.android.models.Artist;
@@ -24,6 +25,7 @@ public class RetainedFragment extends Fragment {
     private List<Track> tracks;
 
     // The current track being played.
+    //TODO: This may not be necessary
     private Track track;
     private int position;
 
@@ -49,6 +51,18 @@ public class RetainedFragment extends Fragment {
 
     public void setTracks(List<Track> tracks) {
         this.tracks = tracks;
+    }
+
+    public ArrayList<String> getTrackUrls() {
+
+        ArrayList<String> trackUrls = new ArrayList();
+
+        for(Track track: tracks) {
+            trackUrls.add(track.preview_url);
+        }
+
+        return trackUrls;
+
     }
 
     public Track getTrack() {

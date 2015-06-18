@@ -71,7 +71,6 @@ public class TrackListFragment extends Fragment {
                 // We'll need to pass position to PlayerDialogFragment so it can keep track of
                 // where in the list it is currently.
 
-
                 // Save the current track in RetainedFragment
                 Track track = mTrackListAdapter.getItem(position);
                 FragmentManager fm = getActivity().getSupportFragmentManager();
