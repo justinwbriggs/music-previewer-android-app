@@ -36,11 +36,15 @@ public class TrackListFragment extends Fragment {
     private ArrayList<Track> mTracks  = new ArrayList<>();
     private ArrayAdapter<Track> mTrackListAdapter;
     boolean mIsLargeLayout;
+    FragmentManager mFm;
 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mFm = getActivity().getSupportFragmentManager();
+
         setHasOptionsMenu(true);
         mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
 
@@ -71,29 +75,24 @@ public class TrackListFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
 
-                // We'll need to pass position to PlayerDialogFragment so it can keep track of
-                // where in the list it is currently.
 
-                // Save the current track in RetainedFragment
-                FragmentManager fm = getActivity().getSupportFragmentManager();
-                RetainedFragment retainedFragment = (RetainedFragment) fm
+                // Save the current position in RetainedFragment
+                RetainedFragment retainedFragment = (RetainedFragment) mFm
                         .findFragmentByTag(RetainedFragment.class.getSimpleName());
                 retainedFragment.setPosition(position);
-
 
                 // We handle displaying the dialog fragment here instead of using a Callback, since
                 // the host activity may not exist.
 
                 // Depending on the device size, dialog will either be fullscreen or floating.
-                FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                 PlayerDialogFragment playerDialogFragment = new PlayerDialogFragment();
 
                 if (mIsLargeLayout) {
                     // The device is using a large layout, so show the fragment as a dialog
-                    playerDialogFragment.show(fragmentManager, PLAYER_DIALOG_FRAGMENT_TAG);
+                    playerDialogFragment.show(mFm, PLAYER_DIALOG_FRAGMENT_TAG);
                 } else {
                     // The device is smaller, so show the fragment fullscreen
-                    FragmentTransaction transaction = fragmentManager.beginTransaction();
+                    FragmentTransaction transaction = mFm.beginTransaction();
                     // For a little polish, specify a transition animation
                     transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
                     // To make it fullscreen, use the 'content' root view as the container
@@ -135,7 +134,6 @@ public class TrackListFragment extends Fragment {
     public void onResume(){
         super.onResume();
 
-        //TODO: Handle this
         // Set subtitle
         if(getActivity().getActionBar() != null){
             ((TrackListActivity) getActivity())

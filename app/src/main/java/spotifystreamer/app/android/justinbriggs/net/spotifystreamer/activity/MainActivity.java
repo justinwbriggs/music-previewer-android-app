@@ -21,11 +21,13 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
     // TODO: Configure all actionbars correctly.
     // TODO: Use ViewGroup pattern for list items
     // TODO: Need to record the selected position of the list views
+    // TODO: Retain state of subtitle
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         // Find the retained fragment on activity restarts
         FragmentManager fm = getSupportFragmentManager();
@@ -56,7 +58,9 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
 
         } else {
             mTwoPane = false;
-            getSupportActionBar().setElevation(0f);
+            if(getSupportActionBar() != null) {
+                getSupportActionBar().setElevation(0f);
+            }
         }
 
     }
@@ -123,6 +127,11 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
             TrackListFragment trackListFragment = (TrackListFragment) fm
                     .findFragmentByTag(TRACK_LIST_FRAGMENT_TAG);
             trackListFragment.fetchTracks(artist.id);
+
+            // Set the subtitle
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setSubtitle(artist.name);
+            }
 
         } else {
 

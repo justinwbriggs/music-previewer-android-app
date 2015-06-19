@@ -30,8 +30,6 @@ public class PlayerDialogFragment extends DialogFragment {
     private static final int PREVIEW_DURATION = 30000;
 
     boolean mHasRun;
-    // Used to keep the play/pause button up to date.
-    boolean mIsPlaying = true;
 
     // User is interacting with seekBar
     boolean mIsSeeking;
@@ -71,12 +69,10 @@ public class PlayerDialogFragment extends DialogFragment {
         mIvAlbum = (ImageView)rootView.findViewById(R.id.iv_album);
         mTxtTrack = (TextView)rootView.findViewById(R.id.txt_track);
 
+
+
+
         // Used to configure the play/pause button on rotation.
-        if(mIsPlaying) {
-            mIbPausePlay.setImageResource(android.R.drawable.ic_media_pause);
-        } else {
-            mIbPausePlay.setImageResource(android.R.drawable.ic_media_play);
-        }
 
         mIbPausePlay.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -260,10 +256,8 @@ public class PlayerDialogFragment extends DialogFragment {
                 disableButtons();
             } else if(intent.getAction().equals(SongService.BROADCAST_PLAY)) {
                 mIbPausePlay.setImageResource(android.R.drawable.ic_media_pause);
-                mIsPlaying = true;
             } else if(intent.getAction().equals(SongService.BROADCAST_PAUSE)) {
                 mIbPausePlay.setImageResource(android.R.drawable.ic_media_play);
-                mIsPlaying = false;
             } else if(intent.getAction().equals(SongService.BROADCAST_TRACK_CHANGED)) {
                 // When the track changes, update the RetainedFragment instance variable.
                 mRetainedFragment.setPosition(intent.getIntExtra(SongService.POSITION_KEY, 0));
@@ -275,14 +269,12 @@ public class PlayerDialogFragment extends DialogFragment {
                     mSeekBar.setProgress(progress);
                 }
             }
-
         }
-
     }
 
-    // Used to fix the disappearing dialog after rotation on tablets
     @Override
     public void onDestroyView() {
+        // Used to fix the disappearing dialog after rotation on tablets
         if (getDialog() != null && getRetainInstance())
             getDialog().setOnDismissListener(null);
         super.onDestroyView();

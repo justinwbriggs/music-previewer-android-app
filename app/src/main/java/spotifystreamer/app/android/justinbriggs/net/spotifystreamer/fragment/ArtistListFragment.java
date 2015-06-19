@@ -3,10 +3,8 @@ package spotifystreamer.app.android.justinbriggs.net.spotifystreamer.fragment;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,15 +36,12 @@ public class ArtistListFragment extends Fragment {
         void onItemSelected(Artist artist);
     }
 
-    public static final String KEY_BUNDLE_LIST_POSITION = "key_bundle_list_position";
-
     public static final String EXTRA_ARTIST_ID = "artist_id"; // The artist id to pass
     public static final String EXTRA_ARTIST_NAME = "artist_name"; // The artist name to past
 
     private ArrayList<Artist> mArtists = new ArrayList<>();
     private ArrayAdapter<Artist> mArtistListAdapter;
     private ListView mListView;
-    Parcelable mListViewState;
     private EditText mEdtSearch;
 
     @Override
@@ -93,13 +88,6 @@ public class ArtistListFragment extends Fragment {
         mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
         mListView.setAdapter(mArtistListAdapter);
-
-        // Restore the listview position and selected state.
-        if(mListViewState != null) {
-            Log.v("asdf", "Restoring listViewState");
-            mListView.onRestoreInstanceState(mListViewState);
-        }
-
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
@@ -107,6 +95,8 @@ public class ArtistListFragment extends Fragment {
                 Artist artist = mArtistListAdapter.getItem(position);
                 ((Callback)getActivity()).onItemSelected(artist);
                 view.setSelected(true);
+
+
 
 
             }
@@ -197,12 +187,4 @@ public class ArtistListFragment extends Fragment {
 
     }
 
-    @Override
-    public void onPause() {
-
-        // Save ListView state @ onPause
-        Log.v("asdf", "onPause");
-        mListViewState = mListView.onSaveInstanceState();
-        super.onPause();
-    }
 }
