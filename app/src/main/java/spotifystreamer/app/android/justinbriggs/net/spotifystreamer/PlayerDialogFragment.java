@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +32,8 @@ public class PlayerDialogFragment extends DialogFragment {
     private static final int PREVIEW_DURATION = 30000;
 
     boolean mHasRun;
+    // User is interacting with seekBar
+    boolean mIsSeeking;
     BroadcastReceiver mReceiver;
 
     private TextView mTxtArtist;
@@ -171,12 +172,21 @@ public class PlayerDialogFragment extends DialogFragment {
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
+                mIsSeeking = true;
 
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
 
+                // Update the progress of the current track.
+                int progress = mSeekBar.getProgress();
+                Intent intent = new Intent(getActivity(), SongService.class);
+                intent.setAction(SongService.ACTION_UPDATE_PROGRESS);
+                intent.putExtra(SongService.PROGRESS_KEY, progress);
+                getActivity().startService(intent);
+
+                mIsSeeking = false;
             }
         });
 
@@ -239,6 +249,8 @@ public class PlayerDialogFragment extends DialogFragment {
         intentFilter.addAction(SongService.BROADCAST_PAUSE);
         intentFilter.addAction(SongService.BROADCAST_TRACK_PROGRESS);
         intentFilter.addAction(SongService.BROADCAST_TRACK_CHANGED);
+        intentFilter.addAction(SongService.ACTION_UPDATE_PROGRESS);
+
         // Use LocalBroadcastManager unless you plan on receiving broadcasts from other apps.
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mReceiver, intentFilter);
     }
@@ -262,9 +274,11 @@ public class PlayerDialogFragment extends DialogFragment {
                 mRetainedFragment.setPosition(intent.getIntExtra(SongService.POSITION_KEY, 0));
                 updateUi();
             } else if(intent.getAction().equals(SongService.BROADCAST_TRACK_PROGRESS)) {
-                // Update the seekBar in real time.
-                int progress = intent.getIntExtra(SongService.BROADCAST_TRACK_PROGRESS_KEY,0);
-                mSeekBar.setProgress(progress);
+                // Update the seekBar in real time, only if user isn't currently touching seekBar
+                if(!mIsSeeking) {
+                    int progress = intent.getIntExtra(SongService.BROADCAST_TRACK_PROGRESS_KEY, 0);
+                    mSeekBar.setProgress(progress);
+                }
             }
 
         }

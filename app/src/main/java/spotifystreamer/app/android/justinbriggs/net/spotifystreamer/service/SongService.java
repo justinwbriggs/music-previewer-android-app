@@ -18,12 +18,16 @@ public class SongService extends Service {
     public static final String ACTION_INITIALIZE_SERVICE = "initialize_service";
 
     public static final String TRACK_LIST_KEY = "track_list_key";
+    // Refers to the position of the track list
     public static final String POSITION_KEY = "position_key";
+    // Refers to the progress of the current track
+    public static final String PROGRESS_KEY = "progress_key";
 
 
     public static final String ACTION_PLAY_PAUSE = "action_play_pause";
     public static final String ACTION_NEXT = "action_next";
     public static final String ACTION_PREVIOUS = "action_prevous";
+    public static final String ACTION_UPDATE_PROGRESS = "action_update_progress";
 
 
     public static final String BROADCAST_TRACK_PROGRESS_KEY = "broadcast_track_progress_key";
@@ -38,8 +42,6 @@ public class SongService extends Service {
 
     // Notify the UI that it needs to update.
     public static final String BROADCAST_TRACK_CHANGED = "broadcast_track_changed";
-
-
 
     private int mPosition = 0;
 
@@ -67,10 +69,7 @@ public class SongService extends Service {
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
-
-                // Play Next track
                 playNextTrack();
-
             }
         });
 
@@ -79,7 +78,6 @@ public class SongService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        Log.v("asdf", "onStartCommand");
         // Send a broadcast every second to notify the UI to update seekbar.
         mRunnable = new Runnable() {
             @Override
@@ -108,11 +106,14 @@ public class SongService extends Service {
                 playPreviousTrack();
             } else if (intent.getAction().equals(ACTION_NEXT)) {
                 playNextTrack();
+            } else if(intent.getAction().equals(ACTION_UPDATE_PROGRESS)) {
+                // Jump to the requested duration.
+                int progress = intent.getIntExtra(PROGRESS_KEY,0);
+                updateProgress(progress);
             }
 
         }
         return super.onStartCommand(intent, flags, startId);
-
     }
 
     public void sendPlayerBroadcast(String action) {
@@ -153,7 +154,6 @@ public class SongService extends Service {
             e.printStackTrace();
             //TODO: File may not exist. Handle this.
         } catch (IllegalArgumentException e) {
-
             //TODO: File may not exist. Handle this.
         } catch (IllegalStateException e) {
             e.printStackTrace();
@@ -161,7 +161,6 @@ public class SongService extends Service {
 
         // Notify the UI that the track has changed.
         sendPlayerBroadcast(BROADCAST_TRACK_CHANGED);
-
     }
 
     public void playPause() {
@@ -169,12 +168,10 @@ public class SongService extends Service {
         if (mPlayer.isPlaying()) {
             mPlayer.pause();
             sendPlayerBroadcast(BROADCAST_PAUSE);
-
         } else {
             sendPlayerBroadcast(BROADCAST_PLAY);
             mPlayer.start();
         }
-
     }
 
     public void playNextTrack() {
@@ -193,6 +190,10 @@ public class SongService extends Service {
             mPosition = mTrackUrls.size() - 1 ;
         }
         setPlayerDataSource();
+    }
+
+    public void updateProgress(int progress) {
+        mPlayer.seekTo(progress);
     }
 
 
