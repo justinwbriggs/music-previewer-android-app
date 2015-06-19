@@ -51,8 +51,6 @@ public class SongService extends Service {
 
     public SongService() {
 
-        Log.v("asdf", "SongService()");
-
         mPlayer = new MediaPlayer();
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
@@ -100,6 +98,7 @@ public class SongService extends Service {
             // Load up the trackUrls when the service is started.
             if (intent.getAction().equals(ACTION_INITIALIZE_SERVICE)) {
                 Log.v("asdf", "ACTION_INITIALIZE_SERVICE");
+
                 mTrackUrls = intent.getStringArrayListExtra(TRACK_LIST_KEY);
                 mPosition = intent.getIntExtra(POSITION_KEY,0);
                 setPlayerDataSource();

@@ -23,20 +23,17 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import kaaes.spotify.webapi.android.models.Track;
 import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.service.SongService;
 
+//TODO: on configuration change, the play/pause state is incorrect if paused
+
 public class PlayerDialogFragment extends DialogFragment {
+
+    private static final int PREVIEW_DURATION = 30000;
 
     boolean mHasRun;
     BroadcastReceiver mReceiver;
-
-    private List<Track> mTracks;
-    private ArrayList<String> mTrackUrls;
-    private int mPosition;
 
     private TextView mTxtArtist;
     private TextView mTxtAlbum;
@@ -48,35 +45,18 @@ public class PlayerDialogFragment extends DialogFragment {
     private ImageView mIvAlbum;
     private TextView mTxtTrack;
 
+    private RetainedFragment mRetainedFragment;
+
     @Override
     public void onAttach(Activity activity) {
-        super.onAttach(activity);
 
-        // Get the track info from the RetainedFragment
+        // Get a reference to the retained fragment.
         FragmentManager fm = getActivity().getSupportFragmentManager();
-        RetainedFragment retainedFragment = (RetainedFragment) fm
+        mRetainedFragment = (RetainedFragment) fm
                 .findFragmentByTag(RetainedFragment.class.getSimpleName());
-
-        if(retainedFragment != null) {
-            //mTrack = retainedFragment.getTrack();
-            //TODO: Why did I need to record the track in RetainedFragment?
-            mTracks = retainedFragment.getTracks();
-            mTrackUrls = retainedFragment.getTrackUrls();
-            mPosition = retainedFragment.getPosition();
-        }
-
+        super.onAttach(activity);
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-
-
-    }
-
-    /** The system calls this to get the DialogFragment's layout, regardless
-     of whether it's being displayed as a dialog or an embedded fragment. */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -119,8 +99,6 @@ public class PlayerDialogFragment extends DialogFragment {
         return rootView;
     }
 
-
-
     // Communicates clicks with the SongService.
     private void sendMediaControlAction(String action) {
         Intent intent = new Intent(getActivity(), SongService.class);
@@ -138,7 +116,8 @@ public class PlayerDialogFragment extends DialogFragment {
             // Initialize service when dialog is created, and send the trackUrl list in a bundle.
             Intent intent = new Intent(getActivity(), SongService.class);
             intent.setAction(SongService.ACTION_INITIALIZE_SERVICE);
-            intent.putStringArrayListExtra(SongService.TRACK_LIST_KEY, mTrackUrls);
+            intent.putStringArrayListExtra(SongService.TRACK_LIST_KEY, mRetainedFragment.getTrackUrls());
+            intent.putExtra(SongService.POSITION_KEY, mRetainedFragment.getPosition());
             getActivity().startService(intent);
             mHasRun = true;
         }
@@ -177,11 +156,11 @@ public class PlayerDialogFragment extends DialogFragment {
 
     private void updateUi() {
 
-        Track track = mTracks.get(mPosition);
+        Track track = mRetainedFragment.getTracks().get(mRetainedFragment.getPosition());
 
         // Set the seekBar
         // All previews are 30 seconds, but the api returns the total track length for some reason.
-        mSeekBar.setMax(30000);
+        mSeekBar.setMax(PREVIEW_DURATION);
 
         // This is for updating the current track when the user drags the seekBar
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -217,7 +196,6 @@ public class PlayerDialogFragment extends DialogFragment {
 
     }
 
-
     /** The system calls this only when creating the layout in a dialog. */
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -235,7 +213,6 @@ public class PlayerDialogFragment extends DialogFragment {
     public void onResume() {
         super.onResume();
         registerReceiver();
-
     }
 
     @Override
@@ -262,12 +239,10 @@ public class PlayerDialogFragment extends DialogFragment {
         intentFilter.addAction(SongService.BROADCAST_PAUSE);
         intentFilter.addAction(SongService.BROADCAST_TRACK_PROGRESS);
         intentFilter.addAction(SongService.BROADCAST_TRACK_CHANGED);
-
         // Use LocalBroadcastManager unless you plan on receiving broadcasts from other apps.
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mReceiver, intentFilter);
     }
 
-    // TODO: You could probably do all your ui updates here
     // TODO: You should be able to register this in the manifest.
     private class Receiver extends BroadcastReceiver {
 
@@ -283,14 +258,13 @@ public class PlayerDialogFragment extends DialogFragment {
             } else if(intent.getAction().equals(SongService.BROADCAST_PAUSE)) {
                 mIbPausePlay.setImageResource(android.R.drawable.ic_media_play);
             } else if(intent.getAction().equals(SongService.BROADCAST_TRACK_CHANGED)) {
-                Log.v("asdf", "trackChanged");
-                mPosition = intent.getIntExtra(SongService.POSITION_KEY, 0);
+                // When the track changes, update the RetainedFragment instance variable.
+                mRetainedFragment.setPosition(intent.getIntExtra(SongService.POSITION_KEY, 0));
                 updateUi();
             } else if(intent.getAction().equals(SongService.BROADCAST_TRACK_PROGRESS)) {
                 // Update the seekBar in real time.
                 int progress = intent.getIntExtra(SongService.BROADCAST_TRACK_PROGRESS_KEY,0);
                 mSeekBar.setProgress(progress);
-
             }
 
         }

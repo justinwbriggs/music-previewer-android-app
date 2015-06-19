@@ -26,7 +26,6 @@ public class RetainedFragment extends Fragment {
 
     // The current track being played.
     //TODO: This may not be necessary
-    private Track track;
     private int position;
 
     // this method is only called once for this fragment
@@ -63,14 +62,6 @@ public class RetainedFragment extends Fragment {
 
         return trackUrls;
 
-    }
-
-    public Track getTrack() {
-        return track;
-    }
-
-    public void setTrack(Track track) {
-        this.track = track;
     }
 
     public int getPosition() {

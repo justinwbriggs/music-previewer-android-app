@@ -72,11 +72,10 @@ public class TrackListFragment extends Fragment {
                 // where in the list it is currently.
 
                 // Save the current track in RetainedFragment
-                Track track = mTrackListAdapter.getItem(position);
                 FragmentManager fm = getActivity().getSupportFragmentManager();
                 RetainedFragment retainedFragment = (RetainedFragment) fm
                         .findFragmentByTag(RetainedFragment.class.getSimpleName());
-                retainedFragment.setTrack(track);
+                retainedFragment.setPosition(position);
 
 
                 // We handle displaying the dialog fragment here instead of using a Callback, since
