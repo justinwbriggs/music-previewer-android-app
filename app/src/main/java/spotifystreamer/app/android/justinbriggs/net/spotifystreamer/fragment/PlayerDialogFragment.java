@@ -23,16 +23,15 @@ import com.squareup.picasso.Picasso;
 
 import kaaes.spotify.webapi.android.models.Track;
 import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.R;
-import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.fragment.RetainedFragment;
 import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.service.SongService;
-
-//TODO: on configuration change, the play/pause state is incorrect if paused
 
 public class PlayerDialogFragment extends DialogFragment {
 
     private static final int PREVIEW_DURATION = 30000;
 
     boolean mHasRun;
+    // Used to keep the play/pause button up to date.
+    boolean mIsPlaying = true;
 
     // User is interacting with seekBar
     boolean mIsSeeking;
@@ -71,6 +70,13 @@ public class PlayerDialogFragment extends DialogFragment {
         mTxtAlbum = (TextView)rootView.findViewById(R.id.txt_album);
         mIvAlbum = (ImageView)rootView.findViewById(R.id.iv_album);
         mTxtTrack = (TextView)rootView.findViewById(R.id.txt_track);
+
+        // Used to configure the play/pause button on rotation.
+        if(mIsPlaying) {
+            mIbPausePlay.setImageResource(android.R.drawable.ic_media_pause);
+        } else {
+            mIbPausePlay.setImageResource(android.R.drawable.ic_media_play);
+        }
 
         mIbPausePlay.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -237,7 +243,6 @@ public class PlayerDialogFragment extends DialogFragment {
         intentFilter.addAction(SongService.BROADCAST_PAUSE);
         intentFilter.addAction(SongService.BROADCAST_TRACK_PROGRESS);
         intentFilter.addAction(SongService.BROADCAST_TRACK_CHANGED);
-        intentFilter.addAction(SongService.ACTION_UPDATE_PROGRESS);
 
         // Use LocalBroadcastManager unless you plan on receiving broadcasts from other apps.
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mReceiver, intentFilter);
@@ -255,8 +260,10 @@ public class PlayerDialogFragment extends DialogFragment {
                 disableButtons();
             } else if(intent.getAction().equals(SongService.BROADCAST_PLAY)) {
                 mIbPausePlay.setImageResource(android.R.drawable.ic_media_pause);
+                mIsPlaying = true;
             } else if(intent.getAction().equals(SongService.BROADCAST_PAUSE)) {
                 mIbPausePlay.setImageResource(android.R.drawable.ic_media_play);
+                mIsPlaying = false;
             } else if(intent.getAction().equals(SongService.BROADCAST_TRACK_CHANGED)) {
                 // When the track changes, update the RetainedFragment instance variable.
                 mRetainedFragment.setPosition(intent.getIntExtra(SongService.POSITION_KEY, 0));

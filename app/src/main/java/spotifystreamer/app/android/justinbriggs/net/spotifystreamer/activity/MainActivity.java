@@ -20,9 +20,7 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
 
     // TODO: Configure all actionbars correctly.
     // TODO: Use ViewGroup pattern for list items
-    // TODO: Fragment dialog disappears on configuration change with larger devices.
-    // TODO: Landscape view for dialog on handhelds needs adjustment.
-    // Need to record the selected position of the
+    // TODO: Need to record the selected position of the list views
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
