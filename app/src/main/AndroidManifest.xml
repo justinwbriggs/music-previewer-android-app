@@ -15,7 +15,7 @@
         <service android:enabled="true" android:name=".service.SongService" />
 
          <activity
-            android:name=".MainActivity"
+            android:name=".activity.MainActivity"
             android:launchMode="singleTop"
             android:label="@string/app_name"
             android:windowSoftInputMode="stateHidden">
@@ -25,12 +25,12 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".TrackListActivity"
+            android:name=".activity.TrackListActivity"
             android:label="@string/title_track_list"
-            android:parentActivityName="MainActivity" >
+            android:parentActivityName=".activity.MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="MainActivity" />
+                android:value=".activity.MainActivity" />
         </activity>
     </application>
 

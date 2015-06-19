@@ -5,11 +5,11 @@
     android:baselineAligned="false"
     android:divider="?android:attr/dividerHorizontal"
     android:orientation="horizontal"
-    tools:context="spotifystreamer.app.android.justinbriggs.net.spotifystreamer.MainActivity">
+    tools:context="spotifystreamer.app.android.justinbriggs.net.spotifystreamer.activity.MainActivity">
 
     <fragment
         android:id="@+id/fragment_artist_list"
-        android:name="spotifystreamer.app.android.justinbriggs.net.spotifystreamer.ArtistListFragment"
+        android:name="spotifystreamer.app.android.justinbriggs.net.spotifystreamer.fragment.ArtistListFragment"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="2"

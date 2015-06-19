@@ -1,10 +1,13 @@
-package spotifystreamer.app.android.justinbriggs.net.spotifystreamer;
+package spotifystreamer.app.android.justinbriggs.net.spotifystreamer.activity;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.R;
+import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.fragment.RetainedFragment;
 
 public class TrackListActivity extends AppCompatActivity {
 

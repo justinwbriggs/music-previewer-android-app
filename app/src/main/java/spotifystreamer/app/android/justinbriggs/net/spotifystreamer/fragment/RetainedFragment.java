@@ -1,4 +1,4 @@
-package spotifystreamer.app.android.justinbriggs.net.spotifystreamer;
+package spotifystreamer.app.android.justinbriggs.net.spotifystreamer.fragment;
 
 
 import android.os.Bundle;

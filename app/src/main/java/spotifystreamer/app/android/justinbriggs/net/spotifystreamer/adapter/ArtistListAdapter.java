@@ -1,4 +1,4 @@
-package spotifystreamer.app.android.justinbriggs.net.spotifystreamer;
+package spotifystreamer.app.android.justinbriggs.net.spotifystreamer.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -15,6 +15,7 @@ import java.util.List;
 
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.Image;
+import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.R;
 
 
 public class ArtistListAdapter extends ArrayAdapter<Artist> {

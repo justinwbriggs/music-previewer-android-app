@@ -1,4 +1,4 @@
-package spotifystreamer.app.android.justinbriggs.net.spotifystreamer;
+package spotifystreamer.app.android.justinbriggs.net.spotifystreamer.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,6 +8,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import kaaes.spotify.webapi.android.models.Artist;
+import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.R;
+import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.fragment.ArtistListFragment;
+import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.fragment.RetainedFragment;
+import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.fragment.TrackListFragment;
 
 public class MainActivity extends AppCompatActivity implements ArtistListFragment.Callback {
 

@@ -1,4 +1,4 @@
-package spotifystreamer.app.android.justinbriggs.net.spotifystreamer;
+package spotifystreamer.app.android.justinbriggs.net.spotifystreamer.fragment;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -25,6 +25,8 @@ import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
 import kaaes.spotify.webapi.android.models.Pager;
+import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.adapter.ArtistListAdapter;
+import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.R;
 
 //TODO: Highlight selected list item.
 
