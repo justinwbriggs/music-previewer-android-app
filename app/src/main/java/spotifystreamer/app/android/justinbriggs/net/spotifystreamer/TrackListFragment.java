@@ -134,7 +134,6 @@ public class TrackListFragment extends Fragment {
 
         //TODO: Handle this
         // Set subtitle
-
         if(getActivity().getActionBar() != null){
             ((TrackListActivity) getActivity())
                     .setActionBarSubtitle(mArtistName);
@@ -161,7 +160,7 @@ public class TrackListFragment extends Fragment {
 
                 List<Track> tracks = spotify.getArtistTopTrack(params[0], map).tracks;
                 if(tracks.size() == 0) {
-                    displayToast(getString(R.string.toast_no_artists));
+                    displayToast(getString(R.string.toast_no_tracks));
                 }
 
                 // Set RetainedFragment values for managing instance state.

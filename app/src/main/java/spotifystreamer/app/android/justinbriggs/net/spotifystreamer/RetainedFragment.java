@@ -19,6 +19,8 @@ import kaaes.spotify.webapi.android.models.Track;
  * backstack, which renders this method unusable.
  */
 
+//TODO: Should I be using interfaces to communicate through activities? Instead of the fragments themselves?
+
 public class RetainedFragment extends Fragment {
 
     private List<Artist> artists;

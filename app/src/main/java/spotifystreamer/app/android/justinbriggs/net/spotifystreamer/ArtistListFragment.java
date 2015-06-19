@@ -26,6 +26,8 @@ import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
 import kaaes.spotify.webapi.android.models.Pager;
 
+//TODO: Highlight selected list item.
+
 public class ArtistListFragment extends Fragment {
 
     public interface Callback {
@@ -38,6 +40,7 @@ public class ArtistListFragment extends Fragment {
 
     private ArrayList<Artist> mArtists = new ArrayList<>();
     private ArrayAdapter<Artist> mArtistListAdapter;
+    private ListView mListView;
     private EditText mEdtSearch;
 
     @Override
@@ -49,8 +52,6 @@ public class ArtistListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
-
 
         View rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
 
@@ -82,15 +83,23 @@ public class ArtistListFragment extends Fragment {
         // and when returning from another activity via the Up button
         mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtists);
 
-        ListView listView = (ListView) rootView.findViewById(R.id.listview_artist);
-        listView.setAdapter(mArtistListAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListView = (ListView) rootView.findViewById(R.id.listview_artist);
+        mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+
+
+        mListView.setAdapter(mArtistListAdapter);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
 
+
                 Artist artist = mArtistListAdapter.getItem(position);
                 ((Callback)getActivity()).onItemSelected(artist);
+                view.setSelected(true);
+
+
+
             }
         });
 

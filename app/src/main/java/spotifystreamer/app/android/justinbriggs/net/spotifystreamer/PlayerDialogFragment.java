@@ -1,9 +1,9 @@
 package spotifystreamer.app.android.justinbriggs.net.spotifystreamer;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,7 @@ public class PlayerDialogFragment extends DialogFragment {
     private static final int PREVIEW_DURATION = 30000;
 
     boolean mHasRun;
+
     // User is interacting with seekBar
     boolean mIsSeeking;
     BroadcastReceiver mReceiver;
@@ -49,20 +51,14 @@ public class PlayerDialogFragment extends DialogFragment {
     private RetainedFragment mRetainedFragment;
 
     @Override
-    public void onAttach(Activity activity) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
 
         // Get a reference to the retained fragment.
         FragmentManager fm = getActivity().getSupportFragmentManager();
         mRetainedFragment = (RetainedFragment) fm
                 .findFragmentByTag(RetainedFragment.class.getSimpleName());
-        super.onAttach(activity);
-    }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-
-        // TODO: Necessary?
         setRetainInstance(true);
 
         View rootView = inflater.inflate(R.layout.dialog_fragment_player, container, false);
@@ -113,6 +109,7 @@ public class PlayerDialogFragment extends DialogFragment {
 
         // We only want to initialize one time on startup. Prevents orientation change from firing.
         if(!mHasRun) {
+
             disableButtons();
             // Initialize service when dialog is created, and send the trackUrl list in a bundle.
             Intent intent = new Intent(getActivity(), SongService.class);
@@ -166,14 +163,11 @@ public class PlayerDialogFragment extends DialogFragment {
         // This is for updating the current track when the user drags the seekBar
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-
-            }
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {}
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
                 mIsSeeking = true;
-
             }
 
             @Override
@@ -206,16 +200,10 @@ public class PlayerDialogFragment extends DialogFragment {
 
     }
 
-    /** The system calls this only when creating the layout in a dialog. */
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        // The only reason you might override this method when using onCreateView() is
-        // to modify any dialog characteristics. For example, the dialog includes a
-        // title by default, but your custom layout might not need it. So here you can
-        // remove the dialog title, but you must call the superclass to get the Dialog.
         Dialog dialog = super.onCreateDialog(savedInstanceState);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-
         return dialog;
     }
 
@@ -285,4 +273,11 @@ public class PlayerDialogFragment extends DialogFragment {
 
     }
 
+    // Used to fix the disappearing dialog after rotation on tablets
+    @Override
+    public void onDestroyView() {
+        if (getDialog() != null && getRetainInstance())
+            getDialog().setOnDismissListener(null);
+        super.onDestroyView();
+    }
 }

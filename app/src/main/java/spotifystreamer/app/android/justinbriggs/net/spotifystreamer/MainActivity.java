@@ -14,9 +14,11 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
     private static final String TRACK_LIST_FRAGMENT_TAG = "TLFTAG";
     private boolean mTwoPane;
 
-    //TODO: Highlight selected list item.
     // TODO: Configure all actionbars correctly.
     // TODO: Use ViewGroup pattern for list items
+    // TODO: Fragment dialog disappears on configuration change with larger devices.
+    // TODO: Landscape view for dialog on handhelds needs adjustment.
+    // Need to record the selected position of the
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

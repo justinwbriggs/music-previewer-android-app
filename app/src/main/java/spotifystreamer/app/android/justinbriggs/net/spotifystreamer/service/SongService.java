@@ -8,7 +8,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,16 +29,14 @@ public class SongService extends Service {
     public static final String ACTION_UPDATE_PROGRESS = "action_update_progress";
 
 
+    // Intent key for notifying of the current tracks progress.
     public static final String BROADCAST_TRACK_PROGRESS_KEY = "broadcast_track_progress_key";
     public static final String BROADCAST_TRACK_PROGRESS = "broadcast_track_progress";
 
-
     public static final String BROADCAST_READY = "broadcast_ready";
     public static final String BROADCAST_NOT_READY = "broadcast_not_ready";
-
     public static final String BROADCAST_PLAY = "broadcast_play";
     public static final String BROADCAST_PAUSE = "broadcast_pause";
-
     // Notify the UI that it needs to update.
     public static final String BROADCAST_TRACK_CHANGED = "broadcast_track_changed";
 
@@ -90,12 +87,10 @@ public class SongService extends Service {
             }
         };
 
-        //TODO: This is firing on orientation change for some reason.
         if(intent != null) {
 
             // Load up the trackUrls when the service is started.
             if (intent.getAction().equals(ACTION_INITIALIZE_SERVICE)) {
-                Log.v("asdf", "ACTION_INITIALIZE_SERVICE");
 
                 mTrackUrls = intent.getStringArrayListExtra(TRACK_LIST_KEY);
                 mPosition = intent.getIntExtra(POSITION_KEY,0);
@@ -116,15 +111,16 @@ public class SongService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
+    // Send broadcasts related to player state and track list state.
     public void sendPlayerBroadcast(String action) {
-
         Intent i = new Intent();
         i.setAction(action);
         i.putExtra(POSITION_KEY, mPosition);
-        // Use LocalBroadcastManager, more secure when you don't have to share info.
+        // Use LocalBroadcastManager, more secure when you don't have to share info across apps.
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
     }
 
+    // Send broadcasts related to progress of current track.
     public void sendProgressBroadcast(int progress) {
         Intent i = new Intent();
         i.setAction(BROADCAST_TRACK_PROGRESS);
@@ -164,7 +160,6 @@ public class SongService extends Service {
     }
 
     public void playPause() {
-
         if (mPlayer.isPlaying()) {
             mPlayer.pause();
             sendPlayerBroadcast(BROADCAST_PAUSE);
