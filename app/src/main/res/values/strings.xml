@@ -1,6 +1,5 @@
 <resources>
-    <string name="app_name">Spotify Streamer</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="app_name">Music Previewer</string>
     <string name="action_settings">Settings</string>
 
     <string name="title_track_list">Top 10 Tracks</string>

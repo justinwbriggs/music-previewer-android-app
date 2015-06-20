@@ -1,4 +1,4 @@
-package spotifystreamer.app.android.justinbriggs.net.spotifystreamer.adapter;
+package net.justinbriggs.android.musicpreviewer.app.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -10,10 +10,11 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import net.justinbriggs.android.musicpreviewer.app.R;
+
 import java.util.ArrayList;
 
 import kaaes.spotify.webapi.android.models.Track;
-import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.R;
 
 
 public class TrackListAdapter extends ArrayAdapter<Track> {

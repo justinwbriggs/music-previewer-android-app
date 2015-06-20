@@ -1,4 +1,4 @@
-package spotifystreamer.app.android.justinbriggs.net.spotifystreamer.service;
+package net.justinbriggs.android.musicpreviewer.app.service;
 
 import android.app.Service;
 import android.content.Intent;

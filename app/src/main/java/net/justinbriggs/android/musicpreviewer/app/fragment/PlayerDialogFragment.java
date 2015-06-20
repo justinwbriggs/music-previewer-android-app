@@ -1,4 +1,4 @@
-package spotifystreamer.app.android.justinbriggs.net.spotifystreamer.fragment;
+package net.justinbriggs.android.musicpreviewer.app.fragment;
 
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
@@ -21,9 +21,10 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import net.justinbriggs.android.musicpreviewer.app.R;
+import net.justinbriggs.android.musicpreviewer.app.service.SongService;
+
 import kaaes.spotify.webapi.android.models.Track;
-import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.R;
-import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.service.SongService;
 
 public class PlayerDialogFragment extends DialogFragment {
 

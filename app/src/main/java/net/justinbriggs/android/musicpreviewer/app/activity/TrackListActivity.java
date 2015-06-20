@@ -1,4 +1,4 @@
-package spotifystreamer.app.android.justinbriggs.net.spotifystreamer.activity;
+package net.justinbriggs.android.musicpreviewer.app.activity;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
@@ -6,8 +6,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.R;
-import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.fragment.RetainedFragment;
+import net.justinbriggs.android.musicpreviewer.app.R;
+import net.justinbriggs.android.musicpreviewer.app.fragment.RetainedFragment;
+
 
 public class TrackListActivity extends AppCompatActivity {
 
@@ -21,7 +22,8 @@ public class TrackListActivity extends AppCompatActivity {
         RetainedFragment retainedFragment = (RetainedFragment) fm
                 .findFragmentByTag(RetainedFragment.class.getSimpleName());
 
-        // Create headless RetainedFragment if it doesn't exist
+        // Create head
+        // less RetainedFragment if it doesn't exist
         if (retainedFragment == null) {
             // add the fragment
             retainedFragment = new RetainedFragment();

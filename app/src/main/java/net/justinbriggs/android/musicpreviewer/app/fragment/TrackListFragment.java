@@ -1,4 +1,4 @@
-package spotifystreamer.app.android.justinbriggs.net.spotifystreamer.fragment;
+package net.justinbriggs.android.musicpreviewer.app.fragment;
 
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -14,6 +14,10 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import net.justinbriggs.android.musicpreviewer.app.R;
+import net.justinbriggs.android.musicpreviewer.app.activity.TrackListActivity;
+import net.justinbriggs.android.musicpreviewer.app.adapter.TrackListAdapter;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,9 +27,6 @@ import java.util.Map;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Track;
-import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.R;
-import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.activity.TrackListActivity;
-import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.adapter.TrackListAdapter;
 
 public class TrackListFragment extends Fragment {
 

@@ -1,4 +1,4 @@
-package spotifystreamer.app.android.justinbriggs.net.spotifystreamer.activity;
+package net.justinbriggs.android.musicpreviewer.app.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,27 +7,30 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import net.justinbriggs.android.musicpreviewer.app.R;
+import net.justinbriggs.android.musicpreviewer.app.fragment.ArtistListFragment;
+import net.justinbriggs.android.musicpreviewer.app.fragment.RetainedFragment;
+import net.justinbriggs.android.musicpreviewer.app.fragment.TrackListFragment;
+
 import kaaes.spotify.webapi.android.models.Artist;
-import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.R;
-import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.fragment.ArtistListFragment;
-import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.fragment.RetainedFragment;
-import spotifystreamer.app.android.justinbriggs.net.spotifystreamer.fragment.TrackListFragment;
 
 public class MainActivity extends AppCompatActivity implements ArtistListFragment.Callback {
 
+    // TODO: Move these to their respective fragments
     private static final String TRACK_LIST_FRAGMENT_TAG = "TLFTAG";
+
     private boolean mTwoPane;
 
     // TODO: Configure all actionbars correctly.
     // TODO: Use ViewGroup pattern for list items
     // TODO: Need to record the selected position of the list views
     // TODO: Retain state of subtitle
+    // TODO: Create an app icon, and a placeholder icon for list items
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
         // Find the retained fragment on activity restarts
         FragmentManager fm = getSupportFragmentManager();
