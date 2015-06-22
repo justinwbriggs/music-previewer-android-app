@@ -30,7 +30,6 @@ import kaaes.spotify.webapi.android.models.Track;
 
 public class TrackListFragment extends Fragment {
 
-    private static final String PLAYER_DIALOG_FRAGMENT_TAG = "PDFTAG";
 
     private String mArtistId;
     private String mArtistName;
@@ -78,9 +77,9 @@ public class TrackListFragment extends Fragment {
 
 
                 // Save the current position in RetainedFragment
-                RetainedFragment retainedFragment = (RetainedFragment) mFm
-                        .findFragmentByTag(RetainedFragment.class.getSimpleName());
-                retainedFragment.setPosition(position);
+//                RetainedFragment retainedFragment = (RetainedFragment) mFm
+//                        .findFragmentByTag(RetainedFragment.class.getSimpleName());
+//                retainedFragment.setPosition(position);
 
                 // We handle displaying the dialog fragment here instead of using a Callback, since
                 // the host activity may not exist.
@@ -90,7 +89,7 @@ public class TrackListFragment extends Fragment {
 
                 if (mIsLargeLayout) {
                     // The device is using a large layout, so show the fragment as a dialog
-                    playerDialogFragment.show(mFm, PLAYER_DIALOG_FRAGMENT_TAG);
+                    playerDialogFragment.show(mFm, PlayerDialogFragment.FRAGMENT_TAG);
                 } else {
                     // The device is smaller, so show the fragment fullscreen
                     FragmentTransaction transaction = mFm.beginTransaction();
@@ -113,17 +112,17 @@ public class TrackListFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        FragmentManager fm = getActivity().getSupportFragmentManager();
-        RetainedFragment retainedFragment = (RetainedFragment) fm
-                .findFragmentByTag(RetainedFragment.class.getSimpleName());
-
-        if(retainedFragment != null && retainedFragment.getTracks() != null) {
-            mTracks = (ArrayList<Track>)retainedFragment.getTracks();
-            mTrackListAdapter.clear();
-            mTrackListAdapter.addAll(mTracks);
-        } else {
-            fetchTracks(mArtistId);
-        }
+//        FragmentManager fm = getActivity().getSupportFragmentManager();
+//        RetainedFragment retainedFragment = (RetainedFragment) fm
+//                .findFragmentByTag(RetainedFragment.class.getSimpleName());
+//
+//        if(retainedFragment != null && retainedFragment.getTracks() != null) {
+//            mTracks = (ArrayList<Track>)retainedFragment.getTracks();
+//            mTrackListAdapter.clear();
+//            mTrackListAdapter.addAll(mTracks);
+//        } else {
+//            fetchTracks(mArtistId);
+//        }
 
     }
 
@@ -167,11 +166,11 @@ public class TrackListFragment extends Fragment {
 
                 // Set RetainedFragment values for managing instance state.
                 FragmentManager fm = getActivity().getSupportFragmentManager();
-                RetainedFragment retainedFragment = (RetainedFragment) fm
-                        .findFragmentByTag(RetainedFragment.class.getSimpleName());
-                if(retainedFragment != null) {
-                    retainedFragment.setTracks(tracks);
-                }
+//                RetainedFragment retainedFragment = (RetainedFragment) fm
+//                        .findFragmentByTag(RetainedFragment.class.getSimpleName());
+//                if(retainedFragment != null) {
+//                    retainedFragment.setTracks(tracks);
+//                }
 
                 return tracks;
 

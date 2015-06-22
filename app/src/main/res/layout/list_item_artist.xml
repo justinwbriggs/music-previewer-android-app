@@ -13,8 +13,7 @@
         android:id="@+id/iv_artist"
         android:layout_width="64dp"
         android:layout_height="64dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_launcher"/>
+        android:scaleType="centerCrop" />
 
     <LinearLayout
         android:layout_height="wrap_content"

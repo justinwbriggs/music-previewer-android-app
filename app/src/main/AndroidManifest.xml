@@ -32,6 +32,20 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.MainActivity" />
         </activity>
+        <activity
+            android:name=".activity.PlayerActivity"
+            android:parentActivityName=".activity.MainActivity"
+            android:label="@string/title_track_list">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activity.MainActivity"/>
+
+        </activity>
+        <provider
+            android:authorities="net.justinbriggs.android.musicpreviewer.app"
+            android:name=".data.MusicProvider"
+            android:exported="false"
+            android:syncable="true" />
     </application>
 
 </manifest>

@@ -46,7 +46,7 @@ public class ArtistListAdapter extends ArrayAdapter<Artist> {
 
             // Always get the last image, which should be the 64 px size, but may not be included.
             Picasso.with(mContext).load(images.get(images.size()-1).url)
-                    .placeholder(R.drawable.ic_launcher)
+                    .placeholder(R.drawable.ic_placeholder)
                     .into(ivArtist);
         } catch (Exception e) {
             e.printStackTrace();

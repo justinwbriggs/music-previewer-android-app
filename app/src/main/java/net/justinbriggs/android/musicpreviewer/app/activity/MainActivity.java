@@ -8,8 +8,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
+import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
 import net.justinbriggs.android.musicpreviewer.app.fragment.ArtistListFragment;
-import net.justinbriggs.android.musicpreviewer.app.fragment.RetainedFragment;
 import net.justinbriggs.android.musicpreviewer.app.fragment.TrackListFragment;
 
 import kaaes.spotify.webapi.android.models.Artist;
@@ -21,29 +21,39 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
 
     private boolean mTwoPane;
 
+    // TODO: go through all the courses and add comments
     // TODO: Configure all actionbars correctly.
+    // See if you can take advantage of the manifest
+    // Here's a way this might be accomplished: http://stackoverflow.com/questions/23811136
+
     // TODO: Use ViewGroup pattern for list items
     // TODO: Need to record the selected position of the list views
     // TODO: Retain state of subtitle
     // TODO: Create an app icon, and a placeholder icon for list items
+
+    private static final String[] TRACKS_PROJECTION = new String[] {
+            MusicContract.TrackEntry.COLUMN_ARTIST_NAME,
+            MusicContract.TrackEntry.COLUMN_ALBUM_NAME
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Find the retained fragment on activity restarts
-        FragmentManager fm = getSupportFragmentManager();
-        RetainedFragment retainedFragment = (RetainedFragment) fm
-                .findFragmentByTag(RetainedFragment.class.getSimpleName());
 
-        // Create headless RetainedFragment if it doesn't exist
-        if (retainedFragment == null) {
-            // add the fragment
-            retainedFragment = new RetainedFragment();
-            fm.beginTransaction().add(retainedFragment,
-                    RetainedFragment.class.getSimpleName()).commit();
-        }
+        // Find the retained fragment on activity restarts
+//        FragmentManager fm = getSupportFragmentManager();
+//        RetainedFragment retainedFragment = (RetainedFragment) fm
+//                .findFragmentByTag(RetainedFragment.class.getSimpleName());
+//
+//        // Create headless RetainedFragment if it doesn't exist
+//        if (retainedFragment == null) {
+//            // add the fragment
+//            retainedFragment = new RetainedFragment();
+//            fm.beginTransaction().add(retainedFragment,
+//                    RetainedFragment.class.getSimpleName()).commit();
+//        }
 
         if (findViewById(R.id.track_list_container) != null) {
 
@@ -53,17 +63,17 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
             mTwoPane = true;
 
             // Create a new TrackListFragment that initially displays nothing.
-            if (savedInstanceState == null) {
-                getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.track_list_container, new TrackListFragment(), TRACK_LIST_FRAGMENT_TAG)
-                        .commit();
-            }
+//            if (savedInstanceState == null) {
+//                getSupportFragmentManager().beginTransaction()
+//                        .replace(R.id.track_list_container, new TrackListFragment(), TRACK_LIST_FRAGMENT_TAG)
+//                        .commit();
+//            }
 
         } else {
-            mTwoPane = false;
-            if(getSupportActionBar() != null) {
-                getSupportActionBar().setElevation(0f);
-            }
+//            mTwoPane = false;
+//            if(getSupportActionBar() != null) {
+//                getSupportActionBar().setElevation(0f);
+//            }
         }
 
     }
@@ -145,6 +155,11 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
             startActivity(intent);
         }
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
     }
 }
 

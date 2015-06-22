@@ -8,8 +8,8 @@ import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,14 +19,13 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.squareup.picasso.Picasso;
-
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
-import kaaes.spotify.webapi.android.models.Track;
-
 public class PlayerDialogFragment extends DialogFragment {
+
+
+    public static final String FRAGMENT_TAG = PlayerDialogFragment.class.getSimpleName();
 
     private static final int PREVIEW_DURATION = 30000;
 
@@ -46,16 +45,18 @@ public class PlayerDialogFragment extends DialogFragment {
     private ImageView mIvAlbum;
     private TextView mTxtTrack;
 
-    private RetainedFragment mRetainedFragment;
+    //private RetainedFragment mRetainedFragment;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+
         // Get a reference to the retained fragment.
-        FragmentManager fm = getActivity().getSupportFragmentManager();
-        mRetainedFragment = (RetainedFragment) fm
-                .findFragmentByTag(RetainedFragment.class.getSimpleName());
+//        FragmentManager fm = getActivity().getSupportFragmentManager();
+//        mRetainedFragment = (RetainedFragment) fm
+//                .findFragmentByTag(RetainedFragment.class.getSimpleName());
+
 
         setRetainInstance(true);
 
@@ -117,8 +118,9 @@ public class PlayerDialogFragment extends DialogFragment {
             // Initialize service when dialog is created, and send the trackUrl list in a bundle.
             Intent intent = new Intent(getActivity(), SongService.class);
             intent.setAction(SongService.ACTION_INITIALIZE_SERVICE);
-            intent.putStringArrayListExtra(SongService.TRACK_LIST_KEY, mRetainedFragment.getTrackUrls());
-            intent.putExtra(SongService.POSITION_KEY, mRetainedFragment.getPosition());
+//            intent.putStringArrayListExtra(SongService.TRACK_LIST_KEY, mRetainedFragment.getTrackUrls());
+//            intent.putExtra(SongService.POSITION_KEY, mRetainedFragment.getPosition());
+
             getActivity().startService(intent);
             mHasRun = true;
         }
@@ -156,50 +158,50 @@ public class PlayerDialogFragment extends DialogFragment {
     }
 
     private void updateUi() {
-
-        Track track = mRetainedFragment.getTracks().get(mRetainedFragment.getPosition());
-
-        // Set the seekBar
-        // All previews are 30 seconds, but the api returns the total track length for some reason.
-        mSeekBar.setMax(PREVIEW_DURATION);
-
-        // This is for updating the current track when the user drags the seekBar
-        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {}
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                mIsSeeking = true;
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-                // Update the progress of the current track.
-                int progress = mSeekBar.getProgress();
-                Intent intent = new Intent(getActivity(), SongService.class);
-                intent.setAction(SongService.ACTION_UPDATE_PROGRESS);
-                intent.putExtra(SongService.PROGRESS_KEY, progress);
-                getActivity().startService(intent);
-
-                mIsSeeking = false;
-            }
-        });
-
-        mTxtArtist.setText(track.artists.get(0).name);
-        mTxtAlbum.setText(track.album.name);
-        try {
-
-            // 0 should be the largest image
-            String imageUrl = track.album.images.get(0).url;
-            Picasso.with(getActivity()).load(imageUrl)
-                    .placeholder(R.drawable.ic_launcher)
-                    .into(mIvAlbum);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        mTxtTrack.setText(track.name);
+//
+//        Track track = mRetainedFragment.getTracks().get(mRetainedFragment.getPosition());
+//
+//        // Set the seekBar
+//        // All previews are 30 seconds, but the api returns the total track length for some reason.
+//        mSeekBar.setMax(PREVIEW_DURATION);
+//
+//        // This is for updating the current track when the user drags the seekBar
+//        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+//            @Override
+//            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {}
+//
+//            @Override
+//            public void onStartTrackingTouch(SeekBar seekBar) {
+//                mIsSeeking = true;
+//            }
+//
+//            @Override
+//            public void onStopTrackingTouch(SeekBar seekBar) {
+//
+//                // Update the progress of the current track.
+//                int progress = mSeekBar.getProgress();
+//                Intent intent = new Intent(getActivity(), SongService.class);
+//                intent.setAction(SongService.ACTION_UPDATE_PROGRESS);
+//                intent.putExtra(SongService.PROGRESS_KEY, progress);
+//                getActivity().startService(intent);
+//
+//                mIsSeeking = false;
+//            }
+//        });
+//
+//        mTxtArtist.setText(track.artists.get(0).name);
+//        mTxtAlbum.setText(track.album.name);
+//        try {
+//
+//            // 0 should be the largest image
+//            String imageUrl = track.album.images.get(0).url;
+//            Picasso.with(getActivity()).load(imageUrl)
+//                    .placeholder(R.drawable.ic_placeholder)
+//                    .into(mIvAlbum);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        mTxtTrack.setText(track.name);
 
     }
 
@@ -222,10 +224,11 @@ public class PlayerDialogFragment extends DialogFragment {
 
         // Peculiar behaviour, exception happens on some configuration changes
         // Could be a bug: https://code.google.com/p/android/issues/detail?id=6191
+
         try {
             getActivity().unregisterReceiver(mReceiver);
         } catch(IllegalArgumentException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
     }
 
@@ -251,25 +254,25 @@ public class PlayerDialogFragment extends DialogFragment {
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            if(intent.getAction().equals(SongService.BROADCAST_READY)) {
-                enableButtons();
-            } else if(intent.getAction().equals(SongService.BROADCAST_NOT_READY)) {
-                disableButtons();
-            } else if(intent.getAction().equals(SongService.BROADCAST_PLAY)) {
-                mIbPausePlay.setImageResource(android.R.drawable.ic_media_pause);
-            } else if(intent.getAction().equals(SongService.BROADCAST_PAUSE)) {
-                mIbPausePlay.setImageResource(android.R.drawable.ic_media_play);
-            } else if(intent.getAction().equals(SongService.BROADCAST_TRACK_CHANGED)) {
-                // When the track changes, update the RetainedFragment instance variable.
-                mRetainedFragment.setPosition(intent.getIntExtra(SongService.POSITION_KEY, 0));
-                updateUi();
-            } else if(intent.getAction().equals(SongService.BROADCAST_TRACK_PROGRESS)) {
-                // Update the seekBar in real time, only if user isn't currently touching seekBar
-                if(!mIsSeeking) {
-                    int progress = intent.getIntExtra(SongService.BROADCAST_TRACK_PROGRESS_KEY, 0);
-                    mSeekBar.setProgress(progress);
-                }
-            }
+//            if(intent.getAction().equals(SongService.BROADCAST_READY)) {
+//                enableButtons();
+//            } else if(intent.getAction().equals(SongService.BROADCAST_NOT_READY)) {
+//                disableButtons();
+//            } else if(intent.getAction().equals(SongService.BROADCAST_PLAY)) {
+//                mIbPausePlay.setImageResource(android.R.drawable.ic_media_pause);
+//            } else if(intent.getAction().equals(SongService.BROADCAST_PAUSE)) {
+//                mIbPausePlay.setImageResource(android.R.drawable.ic_media_play);
+//            } else if(intent.getAction().equals(SongService.BROADCAST_TRACK_CHANGED)) {
+//                // When the track changes, update the RetainedFragment instance variable.
+//                mRetainedFragment.setPosition(intent.getIntExtra(SongService.POSITION_KEY, 0));
+//                updateUi();
+//            } else if(intent.getAction().equals(SongService.BROADCAST_TRACK_PROGRESS)) {
+//                // Update the seekBar in real time, only if user isn't currently touching seekBar
+//                if(!mIsSeeking) {
+//                    int progress = intent.getIntExtra(SongService.BROADCAST_TRACK_PROGRESS_KEY, 0);
+//                    mSeekBar.setProgress(progress);
+//                }
+//            }
         }
     }
 
@@ -279,5 +282,11 @@ public class PlayerDialogFragment extends DialogFragment {
         if (getDialog() != null && getRetainInstance())
             getDialog().setOnDismissListener(null);
         super.onDestroyView();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.v("asdf", "PlayerDialogFragment: onDestroy()");
     }
 }

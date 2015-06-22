@@ -41,7 +41,7 @@ public class TrackListAdapter extends ArrayAdapter<Track> {
         try {
             // The index represents url for 64 px image.
             Picasso.with(mContext).load(track.album.images.get(2).url)
-                    .placeholder(R.drawable.ic_launcher)
+                    .placeholder(R.drawable.ic_placeholder)
                     .into(ivAlbum);
         } catch (Exception e) {
             e.printStackTrace();

@@ -1,16 +1,31 @@
 package net.justinbriggs.android.musicpreviewer.app.service;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
+
+import net.justinbriggs.android.musicpreviewer.app.R;
+import net.justinbriggs.android.musicpreviewer.app.activity.PlayerActivity;
 
 import java.io.IOException;
 import java.util.ArrayList;
+
+
+
+/*
+ * IntentService vs. Service for a music player
+ * http://stackoverflow.com/questions/18125447/using-intentservice-for-mediaplayer-playback
+ */
 
 public class SongService extends Service {
 
@@ -28,7 +43,6 @@ public class SongService extends Service {
     public static final String ACTION_PREVIOUS = "action_prevous";
     public static final String ACTION_UPDATE_PROGRESS = "action_update_progress";
 
-
     // Intent key for notifying of the current tracks progress.
     public static final String BROADCAST_TRACK_PROGRESS_KEY = "broadcast_track_progress_key";
     public static final String BROADCAST_TRACK_PROGRESS = "broadcast_track_progress";
@@ -37,6 +51,7 @@ public class SongService extends Service {
     public static final String BROADCAST_NOT_READY = "broadcast_not_ready";
     public static final String BROADCAST_PLAY = "broadcast_play";
     public static final String BROADCAST_PAUSE = "broadcast_pause";
+
     // Notify the UI that it needs to update.
     public static final String BROADCAST_TRACK_CHANGED = "broadcast_track_changed";
 
@@ -113,6 +128,7 @@ public class SongService extends Service {
 
     // Send broadcasts related to player state and track list state.
     public void sendPlayerBroadcast(String action) {
+
         Intent i = new Intent();
         i.setAction(action);
         i.putExtra(POSITION_KEY, mPosition);
@@ -122,6 +138,7 @@ public class SongService extends Service {
 
     // Send broadcasts related to progress of current track.
     public void sendProgressBroadcast(int progress) {
+
         Intent i = new Intent();
         i.setAction(BROADCAST_TRACK_PROGRESS);
         i.putExtra(BROADCAST_TRACK_PROGRESS_KEY, progress);
@@ -155,8 +172,63 @@ public class SongService extends Service {
             e.printStackTrace();
         }
 
+
         // Notify the UI that the track has changed.
         sendPlayerBroadcast(BROADCAST_TRACK_CHANGED);
+
+
+
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.ic_notification_play)
+                        .setContentTitle("My notification")
+                        .setContentText("Hello World!");
+
+        // Creates an explicit intent for an Activity in your app
+        Intent resultIntent = new Intent(this, PlayerActivity.class);
+
+        // The stack builder object will contain an artificial back stack for the
+        // started Activity.
+        // This ensures that navigating backward from the Activity leads out of
+        // your application to the Home screen.
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        // Adds the back stack for the Intent (but not the Intent itself)
+        //stackBuilder.addParentStack(PlayerActivity.class);
+        // Adds the Intent that starts the Activity to the top of the stack
+        stackBuilder.addNextIntent(resultIntent);
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_CANCEL_CURRENT);
+        mBuilder.setContentIntent(resultPendingIntent);
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        // first parameter allows you to update the notification later on.
+        mNotificationManager.notify(93487, mBuilder.build());
+
+
+/*
+        Intent notifyIntent = new Intent(getApplicationContext(), PlayerActivity.class);
+        notifyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0,
+                notifyIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+
+        Notification notification = new Notification();
+
+        // For accessibility
+        //notification.tickerText = "Playing: " + songName;
+        notification.icon = R.drawable.ic_notification_play;
+        notification.flags |= Notification.FLAG_ONGOING_EVENT;
+
+        notification.setLatestEventInfo(getApplicationContext(), getString(R.string.app_name),
+                "Currently Playing ", pi);
+
+        // TODO: ToReview - figure out what first parameter means.
+        startForeground(9376, notification);
+        */
+
     }
 
     public void playPause() {
@@ -190,25 +262,5 @@ public class SongService extends Service {
     public void updateProgress(int progress) {
         mPlayer.seekTo(progress);
     }
-
-
-
-//            PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0,
-//                    new Intent(getApplicationContext(), MainActivity.class),
-//                    PendingIntent.FLAG_UPDATE_CURRENT);
-//
-//            Notification notification = new Notification();
-//
-//            // For accessibility
-//            //notification.tickerText = "Playing: " + songName;
-//            // TODO: get a "play" icon to represent this.
-//            notification.icon = R.drawable.ic_launcher;
-//            notification.flags |= Notification.FLAG_ONGOING_EVENT;
-//
-//            notification.setLatestEventInfo(getApplicationContext(), getString(R.string.app_name),
-//                    "Playing a song: ", pi);
-//
-//            startForeground(9376, notification);
-
 
 }
