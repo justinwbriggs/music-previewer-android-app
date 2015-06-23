@@ -31,7 +31,9 @@ public class MusicDbHelper extends SQLiteOpenHelper {
                 TrackEntry._ID + " INTEGER PRIMARY KEY, " +
                 TrackEntry.COLUMN_ALBUM_NAME+ " TEXT, " +
                 TrackEntry.COLUMN_ARTIST_NAME+ " TEXT, " +
-                TrackEntry.COLUMN_TRACK_NAME + " TEXT" +
+                TrackEntry.COLUMN_TRACK_NAME + " TEXT, " +
+                TrackEntry.COLUMN_ALBUM_IMAGE_URL + " TEXT," +
+                TrackEntry.COLUMN_PREVIEW_URL + " TEXT" +
                 " );";
 
         sqLiteDatabase.execSQL(SQL_CREATE_TRACK_TABLE);

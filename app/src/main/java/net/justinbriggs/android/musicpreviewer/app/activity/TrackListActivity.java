@@ -16,6 +16,8 @@ public class TrackListActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_track_list);
 
+        // If there are tracks saved in the db, load them into the
+
 //        // Find the retained fragment on activity restarts
 //        FragmentManager fm = getSupportFragmentManager();
 //        RetainedFragment retainedFragment = (RetainedFragment) fm

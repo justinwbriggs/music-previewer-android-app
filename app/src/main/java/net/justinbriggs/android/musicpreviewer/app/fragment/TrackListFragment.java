@@ -1,6 +1,8 @@
 package net.justinbriggs.android.musicpreviewer.app.fragment;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,15 +12,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.activity.TrackListActivity;
 import net.justinbriggs.android.musicpreviewer.app.adapter.TrackListAdapter;
+import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -30,20 +31,16 @@ import kaaes.spotify.webapi.android.models.Track;
 
 public class TrackListFragment extends Fragment {
 
+    public static final String FRAGMENT_TAG = TrackListFragment.class.getSimpleName();
 
     private String mArtistId;
     private String mArtistName;
-    private ArrayList<Track> mTracks  = new ArrayList<>();
-    private ArrayAdapter<Track> mTrackListAdapter;
+    private TrackListAdapter mTrackListAdapter;
     boolean mIsLargeLayout;
-    FragmentManager mFm;
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        mFm = getActivity().getSupportFragmentManager();
 
         setHasOptionsMenu(true);
         mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
@@ -66,8 +63,8 @@ public class TrackListFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_track_list, container, false);
 
-        // Just pass in an empty arraylist, let onViewCreated handle updating the view.
-        mTrackListAdapter = new TrackListAdapter(getActivity(), mTracks);
+        // Just pass in an empty cursor, let onViewCreated handle updating the view.
+        mTrackListAdapter = new TrackListAdapter(getActivity(), null, 0);
         ListView listView = (ListView) rootView.findViewById(R.id.listview_track);
         listView.setAdapter(mTrackListAdapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -75,12 +72,9 @@ public class TrackListFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
 
+                FragmentManager fm = getActivity().getSupportFragmentManager();
 
-                // Save the current position in RetainedFragment
-//                RetainedFragment retainedFragment = (RetainedFragment) mFm
-//                        .findFragmentByTag(RetainedFragment.class.getSimpleName());
-//                retainedFragment.setPosition(position);
-
+                //TODO: Save the current position
                 // We handle displaying the dialog fragment here instead of using a Callback, since
                 // the host activity may not exist.
 
@@ -89,10 +83,10 @@ public class TrackListFragment extends Fragment {
 
                 if (mIsLargeLayout) {
                     // The device is using a large layout, so show the fragment as a dialog
-                    playerDialogFragment.show(mFm, PlayerDialogFragment.FRAGMENT_TAG);
+                    playerDialogFragment.show(fm, PlayerDialogFragment.FRAGMENT_TAG);
                 } else {
                     // The device is smaller, so show the fragment fullscreen
-                    FragmentTransaction transaction = mFm.beginTransaction();
+                    FragmentTransaction transaction = fm.beginTransaction();
                     // For a little polish, specify a transition animation
                     transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
                     // To make it fullscreen, use the 'content' root view as the container
@@ -112,17 +106,19 @@ public class TrackListFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-//        FragmentManager fm = getActivity().getSupportFragmentManager();
-//        RetainedFragment retainedFragment = (RetainedFragment) fm
-//                .findFragmentByTag(RetainedFragment.class.getSimpleName());
-//
-//        if(retainedFragment != null && retainedFragment.getTracks() != null) {
-//            mTracks = (ArrayList<Track>)retainedFragment.getTracks();
-//            mTrackListAdapter.clear();
-//            mTrackListAdapter.addAll(mTracks);
-//        } else {
-//            fetchTracks(mArtistId);
-//        }
+        // Get the saved db results
+        Cursor cursor = getActivity().getContentResolver().query(
+                MusicContract.TrackEntry.CONTENT_URI,
+                null, // leaving "columns" null just returns all the columns.
+                null, // cols for "where" clause
+                null, // values for "where" clause
+                null // Sort order
+        );
+        if(cursor.getCount() != 0) {
+            mTrackListAdapter.swapCursor(cursor);
+        } else {
+            fetchTracks(mArtistId);
+        }
 
     }
 
@@ -164,13 +160,29 @@ public class TrackListFragment extends Fragment {
                     displayToast(getString(R.string.toast_no_tracks));
                 }
 
-                // Set RetainedFragment values for managing instance state.
-                FragmentManager fm = getActivity().getSupportFragmentManager();
-//                RetainedFragment retainedFragment = (RetainedFragment) fm
-//                        .findFragmentByTag(RetainedFragment.class.getSimpleName());
-//                if(retainedFragment != null) {
-//                    retainedFragment.setTracks(tracks);
-//                }
+                // First, delete all records
+                getActivity().getContentResolver().delete(
+                        MusicContract.TrackEntry.CONTENT_URI,
+                        null,
+                        null
+                );
+
+                // Then bulk insert all records
+                ContentValues[] contentValues = new ContentValues[tracks.size()];
+                for(int i = 0; i < contentValues.length; i++) {
+
+                    ContentValues trackValues = new ContentValues();
+                    Track track = tracks.get(i);
+                    trackValues.put(MusicContract.TrackEntry.COLUMN_ALBUM_NAME, track.album.name);
+                    trackValues.put(MusicContract.TrackEntry.COLUMN_TRACK_NAME, track.name);
+                    trackValues.put(MusicContract.TrackEntry.COLUMN_ARTIST_NAME, track.artists.get(0).name);
+                    trackValues.put(MusicContract.TrackEntry.COLUMN_ALBUM_IMAGE_URL, track.album.images.get(0).url);
+                    trackValues.put(MusicContract.TrackEntry.COLUMN_PREVIEW_URL,track.preview_url);
+                    contentValues[i] = trackValues;
+                }
+
+                int insertCount = getActivity().getContentResolver()
+                        .bulkInsert(MusicContract.TrackEntry.CONTENT_URI, contentValues);
 
                 return tracks;
 
@@ -185,10 +197,18 @@ public class TrackListFragment extends Fragment {
         @Override
         protected void onPostExecute(List<Track> tracks) {
             if (tracks != null) {
-                mTrackListAdapter.clear();
-                for(Track track: tracks) {
-                    mTrackListAdapter.add(track);
-                }
+
+                // Get the saved db results
+                Cursor cursor = getActivity().getContentResolver().query(
+                        MusicContract.TrackEntry.CONTENT_URI,
+                        null, // leaving "columns" null just returns all the columns.
+                        null, // cols for "where" clause
+                        null, // values for "where" clause
+                        null // Sort order
+                );
+
+                mTrackListAdapter.swapCursor(cursor);
+
             }
         }
     }

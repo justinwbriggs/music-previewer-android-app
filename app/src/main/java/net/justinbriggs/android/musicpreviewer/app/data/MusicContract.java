@@ -8,7 +8,6 @@ import android.provider.BaseColumns;
 
 
 
-
 /**
  * Defines table and column names for the music database.
  */
@@ -52,10 +51,11 @@ public class MusicContract {
         // Table names
         public static final String TABLE_NAME = "track";
 
-
         public static final String COLUMN_ALBUM_NAME = "album_name";
         public static final String COLUMN_ARTIST_NAME = "artist_name";
         public static final String COLUMN_TRACK_NAME = "track_name";
+        public static final String COLUMN_ALBUM_IMAGE_URL = "album_image_url";
+        public static final String COLUMN_PREVIEW_URL = "preview_url";
 
         public static Uri buildTrackUri(long id) {
             return ContentUris.withAppendedId(CONTENT_URI, id);

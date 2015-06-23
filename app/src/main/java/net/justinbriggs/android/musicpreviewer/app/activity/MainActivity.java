@@ -16,9 +16,6 @@ import kaaes.spotify.webapi.android.models.Artist;
 
 public class MainActivity extends AppCompatActivity implements ArtistListFragment.Callback {
 
-    // TODO: Move these to their respective fragments
-    private static final String TRACK_LIST_FRAGMENT_TAG = "TLFTAG";
-
     private boolean mTwoPane;
 
     // TODO: go through all the courses and add comments
@@ -41,20 +38,6 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        // Find the retained fragment on activity restarts
-//        FragmentManager fm = getSupportFragmentManager();
-//        RetainedFragment retainedFragment = (RetainedFragment) fm
-//                .findFragmentByTag(RetainedFragment.class.getSimpleName());
-//
-//        // Create headless RetainedFragment if it doesn't exist
-//        if (retainedFragment == null) {
-//            // add the fragment
-//            retainedFragment = new RetainedFragment();
-//            fm.beginTransaction().add(retainedFragment,
-//                    RetainedFragment.class.getSimpleName()).commit();
-//        }
-
         if (findViewById(R.id.track_list_container) != null) {
 
             // The track_list_container container view will be present only in the large-screen layouts
@@ -62,18 +45,18 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
             // in two-pane mode.
             mTwoPane = true;
 
-            // Create a new TrackListFragment that initially displays nothing.
-//            if (savedInstanceState == null) {
-//                getSupportFragmentManager().beginTransaction()
-//                        .replace(R.id.track_list_container, new TrackListFragment(), TRACK_LIST_FRAGMENT_TAG)
-//                        .commit();
-//            }
+            //Create a new TrackListFragment that initially displays nothing.
+            if (savedInstanceState == null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.track_list_container, new TrackListFragment(), TrackListFragment.FRAGMENT_TAG)
+                        .commit();
+            }
 
         } else {
-//            mTwoPane = false;
-//            if(getSupportActionBar() != null) {
-//                getSupportActionBar().setElevation(0f);
-//            }
+            mTwoPane = false;
+            if(getSupportActionBar() != null) {
+                getSupportActionBar().setElevation(0f);
+            }
         }
 
     }
@@ -132,13 +115,12 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
 
     @Override
     public void onItemSelected(Artist artist) {
-
         if(mTwoPane) {
 
-            // Update the fragment with new results.
+            //Update the fragment with new results.
             FragmentManager fm = getSupportFragmentManager();
             TrackListFragment trackListFragment = (TrackListFragment) fm
-                    .findFragmentByTag(TRACK_LIST_FRAGMENT_TAG);
+                    .findFragmentByTag(TrackListFragment.FRAGMENT_TAG);
             trackListFragment.fetchTracks(artist.id);
 
             // Set the subtitle
@@ -148,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
 
         } else {
 
-            // Start a new TrackListActivity
+            //Start a new TrackListActivity
             Intent intent = new Intent(getApplicationContext(), TrackListActivity.class)
                     .putExtra(ArtistListFragment.EXTRA_ARTIST_ID, artist.id)
                     .putExtra(ArtistListFragment.EXTRA_ARTIST_NAME, artist.name);
