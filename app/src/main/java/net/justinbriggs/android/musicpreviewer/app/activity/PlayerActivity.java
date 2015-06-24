@@ -53,8 +53,6 @@ public class PlayerActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
         super.onCreate(savedInstanceState, persistentState);
 
-        Log.v("asdf", "onCreate()");
-
         //TODO: Probably should check for null
         mFm = getSupportFragmentManager();
         mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
@@ -63,11 +61,9 @@ public class PlayerActivity extends AppCompatActivity {
         PlayerDialogFragment playerDialogFragment = new PlayerDialogFragment();
 
         if (mIsLargeLayout) {
-            Log.v("asdf", "largeLayout: ");
             // The device is using a large layout, so show the fragment as a dialog
             playerDialogFragment.show(mFm, PlayerDialogFragment.FRAGMENT_TAG);
         } else {
-            Log.v("asdf", "smallLayout: ");
             // The device is smaller, so show the fragment fullscreen
             FragmentTransaction transaction = mFm.beginTransaction();
             // For a little polish, specify a transition animation
@@ -85,8 +81,6 @@ public class PlayerActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        Log.v("asdf", "PlayerActivity: onResume()");
-
         //TODO: Probably should check for null
         mFm = getSupportFragmentManager();
         mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
@@ -95,11 +89,9 @@ public class PlayerActivity extends AppCompatActivity {
         PlayerDialogFragment playerDialogFragment = new PlayerDialogFragment();
 
         if (mIsLargeLayout) {
-            Log.v("asdf", "largeLayout: ");
             // The device is using a large layout, so show the fragment as a dialog
             playerDialogFragment.show(mFm, PlayerDialogFragment.FRAGMENT_TAG);
         } else {
-            Log.v("asdf", "smallLayout: ");
             // The device is smaller, so show the fragment fullscreen
             FragmentTransaction transaction = mFm.beginTransaction();
             // For a little polish, specify a transition animation

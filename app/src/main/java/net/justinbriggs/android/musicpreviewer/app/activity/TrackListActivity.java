@@ -1,5 +1,6 @@
 package net.justinbriggs.android.musicpreviewer.app.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -15,22 +16,6 @@ public class TrackListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_track_list);
-
-        // If there are tracks saved in the db, load them into the
-
-//        // Find the retained fragment on activity restarts
-//        FragmentManager fm = getSupportFragmentManager();
-//        RetainedFragment retainedFragment = (RetainedFragment) fm
-//                .findFragmentByTag(RetainedFragment.class.getSimpleName());
-//
-//        // Create head
-//        // less RetainedFragment if it doesn't exist
-//        if (retainedFragment == null) {
-//            // add the fragment
-//            retainedFragment = new RetainedFragment();
-//            fm.beginTransaction().add(retainedFragment,
-//                    RetainedFragment.class.getSimpleName()).commit();
-//        }
 
     }
 
@@ -50,6 +35,12 @@ public class TrackListActivity extends AppCompatActivity {
             //Intent intent = new Intent(getApplicationContext(),SettingsActivity.class);
             //startActivity(intent);
             return true;
+        }
+        if (id == R.id.action_now_playing) {
+
+            Intent i = new Intent(getApplicationContext(),PlayerActivity.class);
+            startActivity(i);
+
         }
 
         return super.onOptionsItemSelected(item);

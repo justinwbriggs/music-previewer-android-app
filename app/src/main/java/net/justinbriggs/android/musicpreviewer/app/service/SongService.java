@@ -14,6 +14,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.activity.PlayerActivity;
@@ -37,10 +38,12 @@ public class SongService extends Service {
     public static final String PROGRESS_KEY = "progress_key";
 
 
+    // Represent the action requests from the PlayerDialogFragment
     public static final String ACTION_PLAY_PAUSE = "action_play_pause";
     public static final String ACTION_NEXT = "action_next";
     public static final String ACTION_PREVIOUS = "action_prevous";
     public static final String ACTION_UPDATE_PROGRESS = "action_update_progress";
+    public static final String ACTION_GET_POSITION = "action_get_position";
 
     // Intent key for notifying of the current tracks progress.
     public static final String BROADCAST_TRACK_PROGRESS_KEY = "broadcast_track_progress_key";
@@ -50,12 +53,12 @@ public class SongService extends Service {
     public static final String BROADCAST_NOT_READY = "broadcast_not_ready";
     public static final String BROADCAST_PLAY = "broadcast_play";
     public static final String BROADCAST_PAUSE = "broadcast_pause";
+    public static final String BROADCAST_POSITION = "broadcast_position";
 
     // Notify the UI that it needs to update.
     public static final String BROADCAST_TRACK_CHANGED = "broadcast_track_changed";
 
     Cursor mCursor;
-    private int mPosition = 0;
 
     private MediaPlayer mPlayer;
     private Handler mHandler = new Handler();
@@ -115,7 +118,8 @@ public class SongService extends Service {
                 );
                 //TODO: Is there any way I can just allow the SongService to deliver the current
                 // track position to the dialog?
-                mPosition = intent.getIntExtra(POSITION_KEY,0);
+
+                mCursor.moveToPosition(intent.getIntExtra(POSITION_KEY,0));
                 setPlayerDataSource();
             } else if (intent.getAction().equals(ACTION_PLAY_PAUSE)) {
                playPause();
@@ -127,6 +131,10 @@ public class SongService extends Service {
                 // Jump to the requested duration.
                 int progress = intent.getIntExtra(PROGRESS_KEY,0);
                 updateProgress(progress);
+            } else if(intent.getAction().equals(ACTION_GET_POSITION)) {
+                Log.v("asdf", "broadcasting position");
+                sendPlayerBroadcast(BROADCAST_POSITION);
+
             }
 
         }
@@ -138,7 +146,7 @@ public class SongService extends Service {
 
         Intent i = new Intent();
         i.setAction(action);
-        i.putExtra(POSITION_KEY, mPosition);
+        i.putExtra(POSITION_KEY, mCursor.getPosition());
         // Use LocalBroadcastManager, more secure when you don't have to share info across apps.
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
     }
@@ -166,7 +174,6 @@ public class SongService extends Service {
         // Reset the player to avoid state exceptions.
         mPlayer.reset();
         try {
-            mCursor.moveToPosition(mPosition);
             //TODO: Go back and add constants for the column keys.
             String url = mCursor.getString(5);
             mPlayer.setDataSource(url);
@@ -250,18 +257,22 @@ public class SongService extends Service {
 
     public void playNextTrack() {
         // Go to the first track position if you are on the last.
-        mPosition++;
-        if(mPosition == mCursor.getCount()) {
-            mPosition = 0;
+        if(!mCursor.moveToNext()) {
+            mCursor.moveToPosition(0);
+        } else {
+            mCursor.moveToNext();
         }
+
         setPlayerDataSource();
     }
 
     public void playPreviousTrack() {
+
         // Go to the last track position if you are on the first.
-        mPosition--;
-        if(mPosition == -1) {
-            mPosition = mCursor.getCount() - 1 ;
+        if(!mCursor.moveToPrevious()) {
+            mCursor.moveToPosition(mCursor.getCount() - 1);
+        } else {
+            mCursor.moveToPrevious();
         }
         setPlayerDataSource();
     }

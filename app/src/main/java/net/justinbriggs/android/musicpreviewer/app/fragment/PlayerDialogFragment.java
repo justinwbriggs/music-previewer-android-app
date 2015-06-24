@@ -35,6 +35,7 @@ public class PlayerDialogFragment extends DialogFragment {
     private static final int PREVIEW_DURATION = 30000;
 
     boolean mHasRun;
+    boolean mFromActionBar;
     int mPosition;
 
     // I had to create this class variable because getActivity.getContentResolver() returns null
@@ -79,9 +80,17 @@ public class PlayerDialogFragment extends DialogFragment {
         // from being saved on rotation.
         if(savedInstanceState != null && savedInstanceState.containsKey(SongService.POSITION_KEY)) {
             mPosition = savedInstanceState.getInt(SongService.POSITION_KEY);
-        } else {
+        } else if(getArguments() != null && getArguments().containsKey(SongService.POSITION_KEY)) {
             mPosition = getArguments().getInt(SongService.POSITION_KEY);
+        } else {
+
+            // This implies that the DialogFragment is being created from the Now Playing button.
+            mFromActionBar = true;
+            // Get mPosition from the running service in order to update the ui correctly.
+            sendMediaControlAction(SongService.ACTION_GET_POSITION);
+
         }
+
 
         View rootView = inflater.inflate(R.layout.dialog_fragment_player, container, false);
 
@@ -133,13 +142,16 @@ public class PlayerDialogFragment extends DialogFragment {
         // We only want to initialize one time on startup. Prevents orientation change from firing.
         if(!mHasRun) {
 
-            disableButtons();
-            // Initialize service when dialog is created, and send the trackUrl list in a bundle.
-            Intent intent = new Intent(getActivity(), SongService.class);
-            intent.setAction(SongService.ACTION_INITIALIZE_SERVICE);
-            intent.putExtra(SongService.POSITION_KEY, mPosition);
-            getActivity().startService(intent);
-            mHasRun = true;
+            // We also don't want to re-initialize if the user resumes from action bar button.
+            if(!mFromActionBar) {
+                disableButtons();
+                // Initialize service when dialog is created, and send the trackUrl list in a bundle.
+                Intent intent = new Intent(getActivity(), SongService.class);
+                intent.setAction(SongService.ACTION_INITIALIZE_SERVICE);
+                intent.putExtra(SongService.POSITION_KEY, mPosition);
+                getActivity().startService(intent);
+                mHasRun = true;
+            }
         }
         updateUi();
     }
@@ -270,6 +282,7 @@ public class PlayerDialogFragment extends DialogFragment {
         intentFilter.addAction(SongService.BROADCAST_PAUSE);
         intentFilter.addAction(SongService.BROADCAST_TRACK_PROGRESS);
         intentFilter.addAction(SongService.BROADCAST_TRACK_CHANGED);
+        intentFilter.addAction(SongService.BROADCAST_POSITION);
 
         // Use LocalBroadcastManager unless you plan on receiving broadcasts from other apps.
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mReceiver, intentFilter);
@@ -299,6 +312,9 @@ public class PlayerDialogFragment extends DialogFragment {
                     int progress = intent.getIntExtra(SongService.BROADCAST_TRACK_PROGRESS_KEY, 0);
                     mSeekBar.setProgress(progress);
                 }
+            } else if (intent.getAction().equals(SongService.BROADCAST_POSITION)) {
+                mPosition = intent.getIntExtra(SongService.POSITION_KEY, 0);
+                updateUi();
             }
         }
     }
@@ -322,7 +338,5 @@ public class PlayerDialogFragment extends DialogFragment {
         outState.putInt(SongService.POSITION_KEY, mPosition);
 
     }
-
-
 
 }

@@ -80,6 +80,13 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
             return true;
         }
 
+        if (id == R.id.action_now_playing) {
+
+            Intent i = new Intent(getApplicationContext(),PlayerActivity.class);
+            startActivity(i);
+
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
