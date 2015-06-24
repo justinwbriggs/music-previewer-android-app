@@ -222,4 +222,16 @@ public class TrackListFragment extends Fragment {
 
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        // Clear db of all cached tracks, since the user is likely going back to the Artist list.
+        getActivity().getContentResolver().delete(
+                MusicContract.TrackEntry.CONTENT_URI,
+                null,
+                null
+        );
+
+    }
 }
