@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Handler;
@@ -16,11 +17,9 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.activity.PlayerActivity;
+import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
 
 import java.io.IOException;
-import java.util.ArrayList;
-
-
 
 /*
  * IntentService vs. Service for a music player
@@ -55,13 +54,12 @@ public class SongService extends Service {
     // Notify the UI that it needs to update.
     public static final String BROADCAST_TRACK_CHANGED = "broadcast_track_changed";
 
+    Cursor mCursor;
     private int mPosition = 0;
 
     private MediaPlayer mPlayer;
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
-
-    private ArrayList<String> mTrackUrls;
 
     public SongService() {
 
@@ -104,10 +102,19 @@ public class SongService extends Service {
 
         if(intent != null) {
 
-            // Load up the trackUrls when the service is started.
+            //Load up the trackUrls from the db when the service is started.
             if (intent.getAction().equals(ACTION_INITIALIZE_SERVICE)) {
 
-                mTrackUrls = intent.getStringArrayListExtra(TRACK_LIST_KEY);
+                // Get the tracks from the db
+                mCursor = getApplicationContext().getContentResolver().query(
+                        MusicContract.TrackEntry.CONTENT_URI,
+                        null, // leaving "columns" null just returns all the columns.
+                        null, // cols for "where" clause
+                        null, // values for "where" clause
+                        null // Sort order
+                );
+                //TODO: Is there any way I can just allow the SongService to deliver the current
+                // track position to the dialog?
                 mPosition = intent.getIntExtra(POSITION_KEY,0);
                 setPlayerDataSource();
             } else if (intent.getAction().equals(ACTION_PLAY_PAUSE)) {
@@ -159,7 +166,9 @@ public class SongService extends Service {
         // Reset the player to avoid state exceptions.
         mPlayer.reset();
         try {
-            String url = mTrackUrls.get(mPosition);
+            mCursor.moveToPosition(mPosition);
+            //TODO: Go back and add constants for the column keys.
+            String url = mCursor.getString(5);
             mPlayer.setDataSource(url);
             //TODO: Confirm that this keeps media off main thread.
             mPlayer.prepareAsync();
@@ -175,8 +184,6 @@ public class SongService extends Service {
 
         // Notify the UI that the track has changed.
         sendPlayerBroadcast(BROADCAST_TRACK_CHANGED);
-
-
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
@@ -244,7 +251,7 @@ public class SongService extends Service {
     public void playNextTrack() {
         // Go to the first track position if you are on the last.
         mPosition++;
-        if(mPosition == mTrackUrls.size()) {
+        if(mPosition == mCursor.getCount()) {
             mPosition = 0;
         }
         setPlayerDataSource();
@@ -254,7 +261,7 @@ public class SongService extends Service {
         // Go to the last track position if you are on the first.
         mPosition--;
         if(mPosition == -1) {
-            mPosition = mTrackUrls.size() - 1 ;
+            mPosition = mCursor.getCount() - 1 ;
         }
         setPlayerDataSource();
     }

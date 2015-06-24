@@ -38,14 +38,6 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Delete all cached records. The TrackListFragment calls this onDestroy(), but in case
-        // it doesn't get called for some reason:
-        getContentResolver().delete(
-            MusicContract.TrackEntry.CONTENT_URI,
-            null,
-            null
-        );
-
         if (findViewById(R.id.track_list_container) != null) {
 
             // The track_list_container container view will be present only in the large-screen layouts
@@ -150,6 +142,8 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
     protected void onResume() {
         super.onResume();
     }
+
+
 }
 
 

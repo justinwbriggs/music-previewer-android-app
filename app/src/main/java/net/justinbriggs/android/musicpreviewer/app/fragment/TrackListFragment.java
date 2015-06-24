@@ -74,12 +74,12 @@ public class TrackListFragment extends Fragment {
 
                 FragmentManager fm = getActivity().getSupportFragmentManager();
 
-                //TODO: Save the current position
                 // We handle displaying the dialog fragment here instead of using a Callback, since
                 // the host activity may not exist.
 
                 // Depending on the device size, dialog will either be fullscreen or floating.
-                PlayerDialogFragment playerDialogFragment = new PlayerDialogFragment();
+                PlayerDialogFragment playerDialogFragment
+                        = PlayerDialogFragment.newInstance(position);
 
                 if (mIsLargeLayout) {
                     // The device is using a large layout, so show the fragment as a dialog
@@ -114,11 +114,15 @@ public class TrackListFragment extends Fragment {
                 null, // values for "where" clause
                 null // Sort order
         );
-        if(cursor.getCount() != 0) {
-            mTrackListAdapter.swapCursor(cursor);
-        } else {
-            fetchTracks(mArtistId);
-        }
+
+        //TODO: I wanted to cache these results so the AsyncTask did not have to run again, but
+        // it was giving me a bunch of issues.
+        //        if(cursor.getCount() != 0) {
+        //            mTrackListAdapter.swapCursor(cursor);
+        //        } else {
+        //            fetchTracks(mArtistId);
+        //        }
+        fetchTracks(mArtistId);
 
     }
 
@@ -135,6 +139,8 @@ public class TrackListFragment extends Fragment {
             ((TrackListActivity) getActivity())
                     .setActionBarSubtitle(mArtistName);
         }
+
+
 
     }
 
@@ -225,13 +231,6 @@ public class TrackListFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-
-        // Clear db of all cached tracks, since the user is likely going back to the Artist list.
-        getActivity().getContentResolver().delete(
-                MusicContract.TrackEntry.CONTENT_URI,
-                null,
-                null
-        );
 
     }
 }

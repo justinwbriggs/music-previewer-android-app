@@ -107,18 +107,6 @@ public class ArtistListFragment extends Fragment {
 
     @Override
     public void onResume() {
-
-
-//        FragmentManager fm = getActivity().getSupportFragmentManager();
-//        RetainedFragment retainedFragment = (RetainedFragment) fm
-//                .findFragmentByTag(RetainedFragment.class.getSimpleName());
-//
-//        if(retainedFragment != null && retainedFragment.getArtists() != null) {
-//            mArtists = (ArrayList<Artist>)retainedFragment.getArtists();
-//            mArtistListAdapter.clear();
-//            mArtistListAdapter.addAll(mArtists);
-//        }
-
         super.onResume();
     }
 
@@ -149,18 +137,6 @@ public class ArtistListFragment extends Fragment {
                 if(results.artists.items.size() == 0) {
                     displayToast(getString(R.string.toast_no_artists));
                 }
-
-
-
-                // Set RetainedFragment values for managing instance state.
-//                FragmentManager fm = getActivity().getSupportFragmentManager();
-//                RetainedFragment retainedFragment = (RetainedFragment) fm
-//                        .findFragmentByTag(RetainedFragment.class.getSimpleName());
-//                if(retainedFragment != null) {
-//                    retainedFragment.setArtists(results.artists.items);
-//                }
-
-
 
                 return results;
 
