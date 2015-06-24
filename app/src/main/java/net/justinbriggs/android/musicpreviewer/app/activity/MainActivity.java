@@ -23,7 +23,6 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
     // See if you can take advantage of the manifest
     // Here's a way this might be accomplished: http://stackoverflow.com/questions/23811136
 
-    // TODO: Use ViewGroup pattern for list items
     // TODO: Need to record the selected position of the list views
     // TODO: Retain state of subtitle
     // TODO: Create an app icon, and a placeholder icon for list items
@@ -81,10 +80,8 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
         }
 
         if (id == R.id.action_now_playing) {
-
             Intent i = new Intent(getApplicationContext(),PlayerActivity.class);
             startActivity(i);
-
         }
 
         return super.onOptionsItemSelected(item);
@@ -122,6 +119,7 @@ public class MainActivity extends AppCompatActivity implements ArtistListFragmen
 
     @Override
     public void onItemSelected(Artist artist) {
+
         if(mTwoPane) {
 
             //Update the fragment with new results.

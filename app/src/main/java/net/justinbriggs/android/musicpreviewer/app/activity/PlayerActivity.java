@@ -7,7 +7,6 @@ import android.os.PersistableBundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.fragment.PlayerDialogFragment;
@@ -24,9 +23,6 @@ public class PlayerActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
-        Log.v("asdf", "onNewIntent()");
-
-        //TODO: Probably should check for null
         mFm = getSupportFragmentManager();
         mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
 
@@ -49,11 +45,11 @@ public class PlayerActivity extends AppCompatActivity {
 
     }
 
+    //TODO: This can be removed?
     @Override
     public void onCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
         super.onCreate(savedInstanceState, persistentState);
 
-        //TODO: Probably should check for null
         mFm = getSupportFragmentManager();
         mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
 
@@ -76,12 +72,11 @@ public class PlayerActivity extends AppCompatActivity {
 
     }
 
-
+    //TODO: This can be removed?
     @Override
     protected void onResume() {
         super.onResume();
 
-        //TODO: Probably should check for null
         mFm = getSupportFragmentManager();
         mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
 

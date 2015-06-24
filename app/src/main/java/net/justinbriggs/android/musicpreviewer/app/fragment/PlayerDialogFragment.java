@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
@@ -11,8 +12,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -33,6 +35,7 @@ public class PlayerDialogFragment extends DialogFragment {
     public static final String FRAGMENT_TAG = PlayerDialogFragment.class.getSimpleName();
 
     private static final int PREVIEW_DURATION = 30000;
+
 
     boolean mHasRun;
     boolean mFromActionBar;
@@ -65,6 +68,7 @@ public class PlayerDialogFragment extends DialogFragment {
         Bundle args = new Bundle();
         args.putInt(SongService.POSITION_KEY, position);
         f.setArguments(args);
+
         return f;
     }
 
@@ -75,6 +79,7 @@ public class PlayerDialogFragment extends DialogFragment {
         mContentResolver = getActivity().getContentResolver();
 
         setRetainInstance(true);
+        setHasOptionsMenu(true);
 
         // The position can either be defined from the bundle sent from TrackListFragment, or
         // from being saved on rotation.
@@ -336,6 +341,19 @@ public class PlayerDialogFragment extends DialogFragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(SongService.POSITION_KEY, mPosition);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.main, menu);
+
+        menu.findItem(R.id.action_now_playing).setVisible(true);
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
 
     }
 

@@ -9,6 +9,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -57,6 +59,7 @@ public class TrackListFragment extends Fragment {
 
     }
 
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -94,11 +97,16 @@ public class TrackListFragment extends Fragment {
                     transaction.add(android.R.id.content, playerDialogFragment)
                             .addToBackStack(null).commit();
                 }
-
             }
         });
 
         return rootView;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.main, menu);
     }
 
     // Once the view is created, we can populate the list of tracks.
@@ -139,8 +147,6 @@ public class TrackListFragment extends Fragment {
             ((TrackListActivity) getActivity())
                     .setActionBarSubtitle(mArtistName);
         }
-
-
 
     }
 

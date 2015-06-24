@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
@@ -19,6 +21,7 @@ import android.widget.Toast;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.adapter.ArtistListAdapter;
+import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
 import java.util.ArrayList;
 
@@ -43,6 +46,7 @@ public class ArtistListFragment extends Fragment {
     private ArrayAdapter<Artist> mArtistListAdapter;
     private ListView mListView;
     private EditText mEdtSearch;
+    private Menu mMenu;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -96,9 +100,6 @@ public class ArtistListFragment extends Fragment {
                 ((Callback)getActivity()).onItemSelected(artist);
                 view.setSelected(true);
 
-
-
-
             }
         });
 
@@ -108,6 +109,9 @@ public class ArtistListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        if(SongService.sIsInitialized) {
+            mMenu.findItem(R.id.action_now_playing).setVisible(true);
+        }
     }
 
     private void fetchArtists(String artistName) {
@@ -130,8 +134,6 @@ public class ArtistListFragment extends Fragment {
             try {
 
                 ArtistsPager results = spotify.searchArtists(params[0]);
-
-                // Retain the
 
                 // Display a toast message if there are no results.
                 if(results.artists.items.size() == 0) {
@@ -169,5 +171,17 @@ public class ArtistListFragment extends Fragment {
         });
 
     }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.main, menu);
+        mMenu = menu;
+    }
+
+
+
+
+
 
 }

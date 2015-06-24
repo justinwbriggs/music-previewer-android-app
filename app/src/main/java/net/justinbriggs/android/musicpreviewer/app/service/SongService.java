@@ -14,7 +14,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.activity.PlayerActivity;
@@ -29,14 +28,15 @@ import java.io.IOException;
 
 public class SongService extends Service {
 
+    // TODO: Not sure if this is the best method for other components to determine the state,
+    // but I didn't want to have a custom action.
+    public static boolean sIsInitialized = false;
+
     public static final String ACTION_INITIALIZE_SERVICE = "initialize_service";
 
-    public static final String TRACK_LIST_KEY = "track_list_key";
-    // Refers to the position of the track list
     public static final String POSITION_KEY = "position_key";
     // Refers to the progress of the current track
     public static final String PROGRESS_KEY = "progress_key";
-
 
     // Represent the action requests from the PlayerDialogFragment
     public static final String ACTION_PLAY_PAUSE = "action_play_pause";
@@ -64,7 +64,9 @@ public class SongService extends Service {
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
 
-    public SongService() {
+    @Override
+    public void onCreate() {
+        super.onCreate();
 
         mPlayer = new MediaPlayer();
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -85,6 +87,7 @@ public class SongService extends Service {
                 playNextTrack();
             }
         });
+
 
     }
 
@@ -107,6 +110,7 @@ public class SongService extends Service {
 
             //Load up the trackUrls from the db when the service is started.
             if (intent.getAction().equals(ACTION_INITIALIZE_SERVICE)) {
+                sIsInitialized = true;
 
                 // Get the tracks from the db
                 mCursor = getApplicationContext().getContentResolver().query(
@@ -132,9 +136,7 @@ public class SongService extends Service {
                 int progress = intent.getIntExtra(PROGRESS_KEY,0);
                 updateProgress(progress);
             } else if(intent.getAction().equals(ACTION_GET_POSITION)) {
-                Log.v("asdf", "broadcasting position");
                 sendPlayerBroadcast(BROADCAST_POSITION);
-
             }
 
         }
@@ -143,9 +145,9 @@ public class SongService extends Service {
 
     // Send broadcasts related to player state and track list state.
     public void sendPlayerBroadcast(String action) {
-
         Intent i = new Intent();
         i.setAction(action);
+        // Send the cursor position
         i.putExtra(POSITION_KEY, mCursor.getPosition());
         // Use LocalBroadcastManager, more secure when you don't have to share info across apps.
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
@@ -187,7 +189,6 @@ public class SongService extends Service {
         } catch (IllegalStateException e) {
             e.printStackTrace();
         }
-
 
         // Notify the UI that the track has changed.
         sendPlayerBroadcast(BROADCAST_TRACK_CHANGED);
