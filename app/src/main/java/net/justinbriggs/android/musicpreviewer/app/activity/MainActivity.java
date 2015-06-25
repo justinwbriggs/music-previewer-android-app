@@ -35,7 +35,6 @@ public class MainActivity extends AppCompatActivity
     // Here's a way this might be accomplished: http://stackoverflow.com/questions/23811136
 
     // TODO: Need to record the selected position of the list views
-    // TODO: Retain state of subtitle
     // TODO: Create an app icon, and a placeholder icon for list items
 
 

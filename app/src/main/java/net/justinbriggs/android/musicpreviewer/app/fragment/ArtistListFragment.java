@@ -57,10 +57,14 @@ public class ArtistListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+        mArtists = new ArrayList<>();
         if(savedInstanceState != null && savedInstanceState.containsKey("test")) {
             mArtists = savedInstanceState.getParcelableArrayList("test");
+        }
 
-        } else {
+        //TODO: This is a quick fix and needs to be addressed. mArtists is always null if you go to
+        // track screen, rotate twice, and come back to this screen.
+        if(mArtists == null) {
             mArtists = new ArrayList<>();
         }
 
@@ -99,7 +103,6 @@ public class ArtistListFragment extends Fragment {
         mListView = (ListView) rootView.findViewById(R.id.listview_artist);
         mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
-        //TODO: Causes null object if you go to track screen, rotate twice, and come back to this screen.
         mListView.setAdapter(mArtistListAdapter);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
