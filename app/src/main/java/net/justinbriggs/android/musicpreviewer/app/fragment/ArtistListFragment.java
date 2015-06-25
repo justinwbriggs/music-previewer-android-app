@@ -52,11 +52,6 @@ public class ArtistListFragment extends Fragment {
         return f;
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -203,6 +198,7 @@ public class ArtistListFragment extends Fragment {
             throw new ClassCastException(activity.toString()
                     + " must implement OnItemSelectedListener");
         }
+
     }
 
     @Override

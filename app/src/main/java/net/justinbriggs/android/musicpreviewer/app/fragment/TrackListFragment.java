@@ -33,7 +33,7 @@ import kaaes.spotify.webapi.android.models.Track;
 public class TrackListFragment extends Fragment {
 
     public interface Listener {
-        void onAlbumSelected(int position);
+        void onTrackSelected(int position);
     }
 
     public static final String FRAGMENT_TAG = TrackListFragment.class.getSimpleName();
@@ -90,7 +90,7 @@ public class TrackListFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 // Let the host activity sort out navigation.
-                mListener.onAlbumSelected(position);
+                mListener.onTrackSelected(position);
             }
         });
 
@@ -154,7 +154,6 @@ public class TrackListFragment extends Fragment {
                 if(tracks.size() == 0) {
                     displayToast(getString(R.string.toast_no_tracks));
                 }
-
                 // First, delete all records
                 getActivity().getContentResolver().delete(
                         MusicContract.TrackEntry.CONTENT_URI,
@@ -225,8 +224,6 @@ public class TrackListFragment extends Fragment {
         ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
         if(actionBar != null) {
             actionBar.setSubtitle(mArtistName);
-
-
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
     }

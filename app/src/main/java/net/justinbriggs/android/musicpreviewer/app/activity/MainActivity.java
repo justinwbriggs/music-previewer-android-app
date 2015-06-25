@@ -15,6 +15,7 @@ import net.justinbriggs.android.musicpreviewer.app.fragment.ArtistListFragment;
 import net.justinbriggs.android.musicpreviewer.app.fragment.PlayerDialogFragment;
 import net.justinbriggs.android.musicpreviewer.app.fragment.TrackListFragment;
 import net.justinbriggs.android.musicpreviewer.app.model.MyArtist;
+import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
 public class MainActivity extends AppCompatActivity
         implements ArtistListFragment.Listener,
@@ -24,6 +25,8 @@ public class MainActivity extends AppCompatActivity
     //TODO: Figure out if we need these two.
     private boolean mTwoPane;
     private boolean mIsLargeLayout;
+
+    private Menu mMenu;
 
 
     // TODO: go through all the courses and add comments
@@ -105,23 +108,35 @@ public class MainActivity extends AppCompatActivity
 
             Fragment f = getSupportFragmentManager().findFragmentById(R.id.content_frame);
 
+            //MenuItem menuBtnPlaying = mMenu.findItem(R.id.action_now_playing);
+
             if (f instanceof ArtistListFragment) {
                 actionBar.setTitle(getString(R.string.app_name));
                 actionBar.setSubtitle("");
                 actionBar.setDisplayHomeAsUpEnabled(false);
+                if(SongService.sIsInitialized) {
+                    if(mMenu != null) {
+                        mMenu.findItem(R.id.action_now_playing).setVisible(true);
+                    }
+                }
             } else if (f instanceof TrackListFragment) {
                 actionBar.setTitle(R.string.title_track_list);
                 actionBar.setDisplayHomeAsUpEnabled(true);
+                if(SongService.sIsInitialized) {
+                    if(mMenu != null) {
+                        mMenu.findItem(R.id.action_now_playing).setVisible(true);
+                    }
+                }
             } else if (f instanceof PlayerDialogFragment) {
                 actionBar.setTitle(R.string.app_name);
                 actionBar.setSubtitle("");
                 actionBar.setDisplayHomeAsUpEnabled(false);
+                mMenu.findItem(R.id.action_now_playing).setVisible(false);
             }
         } else {
             // Don't need the homeup button for large layouts
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             getSupportActionBar().setHomeButtonEnabled(false);
-
 
         }
     }
@@ -154,7 +169,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onAlbumSelected(int position) {
+    public void onTrackSelected(int position) {
 
         FragmentManager fm = getSupportFragmentManager();
 
@@ -175,6 +190,7 @@ public class MainActivity extends AppCompatActivity
                     .addToBackStack(PlayerDialogFragment.FRAGMENT_TAG)
                     .commit();
 
+            //TODO: Look at the difference between this and how you did it above
 //            // The device is smaller, so show the fragment fullscreen
 //            FragmentTransaction transaction = fm.beginTransaction();
 //            // For a little polish, specify a transition animation
@@ -184,12 +200,24 @@ public class MainActivity extends AppCompatActivity
 //            transaction.add(android.R.id.content, playerDialogFragment)
 //                    .addToBackStack(null).commit();
         }
+
+
+
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+        mMenu = menu;
+
+        // I put this in several places because of poor planning and worse execution.
+        if(SongService.sIsInitialized) {
+            if(mMenu != null) {
+                mMenu.findItem(R.id.action_now_playing).setVisible(true);
+            }
+        }
+
         return true;
     }
 

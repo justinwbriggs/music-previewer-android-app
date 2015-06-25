@@ -77,8 +77,6 @@ public class PlayerDialogFragment extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-
-
         mContentResolver = getActivity().getContentResolver();
 
         setRetainInstance(true);
@@ -263,18 +261,19 @@ public class PlayerDialogFragment extends DialogFragment {
         super.onResume();
         registerReceiver();
 
-        //TODO: Broken, is always null
-//        if(getDialog() != null) {
-//            getDialog().setTitle(getString(R.string.app_name));
-//        }
-//
-//        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-//        if(actionBar != null) {
-//
-//            //actionBar.setTitle(getString(R.string.app_name));
-//            actionBar.setSubtitle("");
-//            actionBar.setDisplayHomeAsUpEnabled(false);
-//        }
+        //TODO: Broken, always null
+        if(getDialog() != null) {
+            getDialog().setTitle(getString(R.string.app_name));
+        }
+
+        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
+        if(actionBar != null) {
+
+            //actionBar.setTitle(getString(R.string.app_name));
+            //actionBar.setSubtitle("");
+            //actionBar.setDisplayHomeAsUpEnabled(false);
+            //actionBar.
+        }
 
     }
 
