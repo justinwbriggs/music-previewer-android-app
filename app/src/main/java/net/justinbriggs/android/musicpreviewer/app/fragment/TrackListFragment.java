@@ -20,6 +20,7 @@ import android.widget.Toast;
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.adapter.TrackListAdapter;
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
+import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +65,8 @@ public class TrackListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setHasOptionsMenu(true);
+
         mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
 
         if(getArguments().containsKey(EXTRA_ID)) {
@@ -75,10 +78,13 @@ public class TrackListFragment extends Fragment {
     }
 
 
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+        setHasOptionsMenu(true);
         View rootView = inflater.inflate(R.layout.fragment_track_list, container, false);
 
         // Just pass in an empty cursor, let onViewCreated handle updating the view.
@@ -97,11 +103,7 @@ public class TrackListFragment extends Fragment {
         return rootView;
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.main, menu);
-    }
+
 
     // Once the view is created, we can populate the list of tracks.
     @Override
@@ -221,11 +223,11 @@ public class TrackListFragment extends Fragment {
         super.onResume();
 
         //TODO: This needs to be handled via callback, as mentioned in MainActivity
-        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-        if(actionBar != null) {
-            actionBar.setSubtitle(mArtistName);
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        }
+//        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
+//        if(actionBar != null) {
+//            actionBar.setSubtitle(mArtistName);
+//            actionBar.setDisplayHomeAsUpEnabled(true);
+//        }
     }
 
     @Override
@@ -241,5 +243,28 @@ public class TrackListFragment extends Fragment {
                     + " must implement OnItemSelectedListener");
         }
     }
+
+    // It seems this gets called when the activity is resumed because we set hasOptionsMenu(true)
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+
+        inflater.inflate(R.menu.main, menu);
+
+        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
+        if(actionBar != null) {
+            // Remove the home button and subtitle
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setSubtitle(mArtistName);
+            if(SongService.sIsInitialized) {
+                    if(menu != null) {
+                        menu.findItem(R.id.action_now_playing).setVisible(true);
+                    }
+                }
+        }
+
+    }
+
+
 
 }

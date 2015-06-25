@@ -16,6 +16,8 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -78,6 +80,8 @@ public class PlayerDialogFragment extends DialogFragment {
 
         mContentResolver = getActivity().getContentResolver();
 
+        // Tells the host activity that the fragment has menu options it wants to manipulate.
+        setHasOptionsMenu(true);
         setRetainInstance(true);
 
         // The position can either be defined from the bundle sent from TrackListFragment, or
@@ -247,6 +251,24 @@ public class PlayerDialogFragment extends DialogFragment {
         mTxtTrack.setText(cursor.getString(3));
         cursor.close();
 
+    }
+
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+
+        // Remove the Now Playing button from this fragment
+        inflater.inflate(R.menu.main, menu);
+        menu.findItem(R.id.action_now_playing).setVisible(false);
+
+        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
+        if(actionBar != null) {
+            // Remove the home button and subtitle
+            actionBar.setDisplayHomeAsUpEnabled(false);
+            actionBar.setSubtitle("");
+            actionBar.setTitle(getString(R.string.app_name));
+        }
     }
 
     @Override

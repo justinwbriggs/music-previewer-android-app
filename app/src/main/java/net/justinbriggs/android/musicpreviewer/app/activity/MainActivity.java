@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,7 +17,7 @@ import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
 public class MainActivity extends AppCompatActivity
         implements ArtistListFragment.Listener,
-        TrackListFragment.Listener, FragmentManager.OnBackStackChangedListener {
+        TrackListFragment.Listener {
 
 
     //TODO: Figure out if we need these two.
@@ -62,6 +61,12 @@ public class MainActivity extends AppCompatActivity
 
             mTwoPane = false;
 
+            // Don't need the homeup button for large layouts
+            if(getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+                getSupportActionBar().setHomeButtonEnabled(false);
+            }
+
             // TODO: Figure out why this works this way.
             // http://stackoverflow.com/questions/27723968/
             // This is a peculiar necessity. Leaving it out will cause a fragment created in this
@@ -71,62 +76,6 @@ public class MainActivity extends AppCompatActivity
             if(savedInstanceState == null) {
                 loadFragment(ArtistListFragment.newInstance(), ArtistListFragment.FRAGMENT_TAG);
             }
-
-        }
-
-        FragmentManager fmm = getSupportFragmentManager();
-        fmm.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
-            @Override
-            public void onBackStackChanged() {
-                setActionBar();
-            }
-        });
-    }
-
-    // Currently called on rotation (onResume), and when the backstack changes (in listener above).
-    //TODO: This is weird but it works. Probably better to just define listeners in the
-    // fragment to tell the host when it is visible.
-    private void setActionBar() {
-
-        ActionBar actionBar = getSupportActionBar();
-        if(actionBar == null) {
-            return;
-        }
-
-        if(!mTwoPane) {
-
-            Fragment f = getSupportFragmentManager().findFragmentById(R.id.content_frame);
-
-            if (f instanceof ArtistListFragment) {
-                actionBar.setTitle(getString(R.string.app_name));
-                actionBar.setSubtitle("");
-                actionBar.setDisplayHomeAsUpEnabled(false);
-                if(SongService.sIsInitialized) {
-                    if(mMenu != null) {
-                        mMenu.findItem(R.id.action_now_playing).setVisible(true);
-                    }
-                }
-            } else if (f instanceof TrackListFragment) {
-                actionBar.setTitle(R.string.title_track_list);
-                actionBar.setDisplayHomeAsUpEnabled(true);
-                if(SongService.sIsInitialized) {
-                    if(mMenu != null) {
-                        mMenu.findItem(R.id.action_now_playing).setVisible(true);
-                    }
-                }
-            } else if (f instanceof PlayerDialogFragment) {
-                actionBar.setTitle(R.string.app_name);
-                actionBar.setSubtitle("");
-                actionBar.setDisplayHomeAsUpEnabled(false);
-                if(mMenu != null) {
-                    mMenu.findItem(R.id.action_now_playing).setVisible(false);
-                }
-            }
-        } else {
-            // Don't need the homeup button for large layouts
-            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-            getSupportActionBar().setHomeButtonEnabled(false);
-
         }
     }
 
@@ -180,9 +129,7 @@ public class MainActivity extends AppCompatActivity
         } else {
             // Add the fragment to the backstack
             loadFragment(playerDialogFragment, PlayerDialogFragment.FRAGMENT_TAG);
-
         }
-
     }
 
     @Override
@@ -208,9 +155,14 @@ public class MainActivity extends AppCompatActivity
         // activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        }
+
+        if (id == android.R.id.home) {
+            FragmentManager fm = getSupportFragmentManager();
+            fm.popBackStackImmediate();
+
         }
 
         if (id == R.id.action_now_playing) {
@@ -220,7 +172,6 @@ public class MainActivity extends AppCompatActivity
             } else {
                 loadFragment(playerDialogFragment, PlayerDialogFragment.FRAGMENT_TAG);
             }
-
         }
 
         return super.onOptionsItemSelected(item);
@@ -238,18 +189,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        setActionBar();
-    }
-
-    //TODO: This doesn't work for some reason.
-    // Here we control the actionbar and anything else that is fragment-visible dependent
-    @Override
-    public void onBackStackChanged() {
-
-    }
 
 
     /*

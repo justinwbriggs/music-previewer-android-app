@@ -5,8 +5,12 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
@@ -20,6 +24,7 @@ import android.widget.Toast;
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.adapter.ArtistListAdapter;
 import net.justinbriggs.android.musicpreviewer.app.model.MyArtist;
+import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +61,8 @@ public class ArtistListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        setHasOptionsMenu(true);
 
         View rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
 
@@ -196,4 +203,24 @@ public class ArtistListFragment extends Fragment {
         outState.putParcelableArrayList(LIST_KEY, mArtists);
 
     }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.main, menu);
+
+        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
+        if(actionBar != null) {
+            // Remove the home button and subtitle
+            actionBar.setTitle(getString(R.string.app_name));
+            actionBar.setSubtitle("");
+            if(SongService.sIsInitialized) {
+                if(menu != null) {
+                    menu.findItem(R.id.action_now_playing).setVisible(true);
+                }
+            }
+        }
+
+    }
+
 }
