@@ -5,7 +5,6 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -71,7 +70,7 @@ public class ArtistListFragment extends Fragment {
         }
 
         mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtists);
-        Log.v("asdf", "adapterCount: " + mArtistListAdapter.getCount());
+        //Log.v("asdf", "adapterCount: " + mArtistListAdapter.getCount());
 
 
         View rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
@@ -105,6 +104,7 @@ public class ArtistListFragment extends Fragment {
         mListView = (ListView) rootView.findViewById(R.id.listview_artist);
         mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
+        //TODO: Causes null object if you go to track screen, rotate twice, and come back to this screen.
         mListView.setAdapter(mArtistListAdapter);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

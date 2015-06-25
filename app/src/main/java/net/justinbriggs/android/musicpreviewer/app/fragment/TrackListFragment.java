@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -63,7 +65,6 @@ public class TrackListFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
-
         mArtistId = getArguments().getString(EXTRA_ID);
         mArtistName = getArguments().getString(EXTRA_NAME);
 
@@ -213,8 +214,13 @@ public class TrackListFragment extends Fragment {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onResume() {
+        super.onResume();
+        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
+        if(actionBar != null) {
+            actionBar.setSubtitle(mArtistName);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
     }
 
     @Override
@@ -230,6 +236,5 @@ public class TrackListFragment extends Fragment {
                     + " must implement OnItemSelectedListener");
         }
     }
-
 
 }

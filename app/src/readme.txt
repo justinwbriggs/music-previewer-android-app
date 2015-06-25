@@ -24,3 +24,6 @@ whatever reason onDestroy is not called, we'll need to also call it at app creat
     Track List Screen:
         - Once the list results have are displaying, turn on airplane mode and rotate. Make sure that all
         data is reloaded.
+
+    Artist List Screen:
+        - Go to the track list screen, rotate to landscape, rotate to portrait, back to ArtistList.

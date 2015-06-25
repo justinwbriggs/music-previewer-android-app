@@ -12,9 +12,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -72,9 +72,12 @@ public class PlayerDialogFragment extends DialogFragment {
         return f;
     }
 
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+
 
         mContentResolver = getActivity().getContentResolver();
 
@@ -259,6 +262,20 @@ public class PlayerDialogFragment extends DialogFragment {
     public void onResume() {
         super.onResume();
         registerReceiver();
+
+        //TODO: Broken, is always null
+//        if(getDialog() != null) {
+//            getDialog().setTitle(getString(R.string.app_name));
+//        }
+//
+//        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
+//        if(actionBar != null) {
+//
+//            //actionBar.setTitle(getString(R.string.app_name));
+//            actionBar.setSubtitle("");
+//            actionBar.setDisplayHomeAsUpEnabled(false);
+//        }
+
     }
 
     @Override

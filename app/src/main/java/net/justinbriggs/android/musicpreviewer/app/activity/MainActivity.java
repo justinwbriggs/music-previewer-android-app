@@ -2,8 +2,9 @@ package net.justinbriggs.android.musicpreviewer.app.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -17,7 +18,7 @@ import net.justinbriggs.android.musicpreviewer.app.model.MyArtist;
 
 public class MainActivity extends AppCompatActivity
         implements ArtistListFragment.Listener,
-        TrackListFragment.Listener {
+        TrackListFragment.Listener, FragmentManager.OnBackStackChangedListener {
 
 
     //TODO: Figure out if we need these two.
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity
     // TODO: Need to record the selected position of the list views
     // TODO: Retain state of subtitle
     // TODO: Create an app icon, and a placeholder icon for list items
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,9 +64,6 @@ public class MainActivity extends AppCompatActivity
             // We'll be working with a content frame to swap out fragments.
             FragmentManager fm = getSupportFragmentManager();
 
-            Log.v("asdf", "fm Count: " + fm.getFragments().size());
-
-
             // TODO: Figure out why this works this way.
             // http://stackoverflow.com/questions/27723968/
             // This is a peculiar necessity. Leaving it out will cause a fragment created in this
@@ -82,7 +81,45 @@ public class MainActivity extends AppCompatActivity
                 getSupportActionBar().setElevation(0f);
             }
         }
+        
+        FragmentManager fmm = getSupportFragmentManager();
+        fmm.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
+            @Override
+            public void onBackStackChanged() {
+                setActionBar();
+            }
+        });
+    }
 
+    // Currently called on rotation (onResume), and when the backstack changes (in listener above).
+    //TODO: This is weird but it works. Probably better to just define listeners in the
+    // fragment to tell the host when it is visible.
+    private void setActionBar() {
+
+        Log.v("asdf", "setActionBar: ");
+
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar == null) {
+            return;
+        }
+
+        if(!mTwoPane) {
+
+            Fragment f = getSupportFragmentManager().findFragmentById(R.id.content_frame);
+
+            if (f instanceof ArtistListFragment) {
+                actionBar.setTitle(getString(R.string.app_name));
+                actionBar.setSubtitle("");
+                actionBar.setDisplayHomeAsUpEnabled(false);
+            } else if (f instanceof TrackListFragment) {
+                actionBar.setTitle(R.string.title_track_list);
+                actionBar.setDisplayHomeAsUpEnabled(true);
+            } else if (f instanceof PlayerDialogFragment) {
+                actionBar.setTitle(R.string.app_name);
+                actionBar.setSubtitle("");
+                actionBar.setDisplayHomeAsUpEnabled(false);
+            }
+        }
     }
 
     @Override
@@ -103,7 +140,6 @@ public class MainActivity extends AppCompatActivity
                     .replace(R.id.content_frame, trackListFragment, TrackListFragment.FRAGMENT_TAG)
                     .addToBackStack(ArtistListFragment.FRAGMENT_TAG)
                     .commit();
-
         }
 
     }
@@ -124,14 +160,20 @@ public class MainActivity extends AppCompatActivity
             // The device is using a large layout, so show the fragment as a dialog
             playerDialogFragment.show(fm, PlayerDialogFragment.FRAGMENT_TAG);
         } else {
-            // The device is smaller, so show the fragment fullscreen
-            FragmentTransaction transaction = fm.beginTransaction();
-            // For a little polish, specify a transition animation
-            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-            // To make it fullscreen, use the 'content' root view as the container
-            // for the fragment, which is always the root view for the activity
-            transaction.add(android.R.id.content, playerDialogFragment)
-                    .addToBackStack(null).commit();
+            // Add the fragment to the backstack
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.content_frame, playerDialogFragment, TrackListFragment.FRAGMENT_TAG)
+                    .addToBackStack(PlayerDialogFragment.FRAGMENT_TAG)
+                    .commit();
+
+//            // The device is smaller, so show the fragment fullscreen
+//            FragmentTransaction transaction = fm.beginTransaction();
+//            // For a little polish, specify a transition animation
+//            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+//            // To make it fullscreen, use the 'content' root view as the container
+//            // for the fragment, which is always the root view for the activity
+//            transaction.add(android.R.id.content, playerDialogFragment)
+//                    .addToBackStack(null).commit();
         }
     }
 
@@ -161,6 +203,24 @@ public class MainActivity extends AppCompatActivity
 
         return super.onOptionsItemSelected(item);
     }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setActionBar();
+    }
+
+    //TODO: This doesn't work for some reason.
+    // Here we control the actionbar and anything else that is fragment-visible dependent
+    @Override
+    public void onBackStackChanged() {
+        Log.v("asdf", "onBackStackChangedMethod");
+
+
+
+    }
+
 
     /*
         * Only called:
