@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -55,7 +56,7 @@ public class MainActivity extends AppCompatActivity
             //Create a new TrackListFragment that initially displays nothing.
             if (savedInstanceState == null) {
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.track_list_container, TrackListFragment.newInstance(null, null), TrackListFragment.FRAGMENT_TAG)
+                        .add(R.id.track_list_container, TrackListFragment.newInstance(null, null), TrackListFragment.FRAGMENT_TAG)
                         .commit();
             }
 
@@ -71,17 +72,11 @@ public class MainActivity extends AppCompatActivity
             // This is a peculiar necessity. Leaving it out will cause a fragment created in this
             // manner to fire onCreateView twice. So don't recreate it if already exists in fm.
             // It can also be accomplished with: if(fm.findFragmentByTag("theTag") != null)
+
             if(savedInstanceState == null) {
-                fm.beginTransaction()
-                        .replace(R.id.content_frame, ArtistListFragment.newInstance(),
-                                ArtistListFragment.FRAGMENT_TAG)
-                        .addToBackStack(ArtistListFragment.FRAGMENT_TAG)
-                        .commit();
+                loadFragment(ArtistListFragment.newInstance(), ArtistListFragment.FRAGMENT_TAG);
             }
 
-            if(getSupportActionBar() != null) {
-                getSupportActionBar().setElevation(0f);
-            }
         }
 
         FragmentManager fmm = getSupportFragmentManager();
@@ -130,7 +125,9 @@ public class MainActivity extends AppCompatActivity
                 actionBar.setTitle(R.string.app_name);
                 actionBar.setSubtitle("");
                 actionBar.setDisplayHomeAsUpEnabled(false);
-                mMenu.findItem(R.id.action_now_playing).setVisible(false);
+                if(mMenu != null) {
+                    mMenu.findItem(R.id.action_now_playing).setVisible(false);
+                }
             }
         } else {
             // Don't need the homeup button for large layouts
@@ -145,10 +142,10 @@ public class MainActivity extends AppCompatActivity
 
         if(mTwoPane) {
 
-                // Update the subtitle with the artist name
-                if(getSupportActionBar() != null) {
-                    getSupportActionBar().setSubtitle(myArtist.getName());
-                }
+            // Update the subtitle with the artist name
+            if(getSupportActionBar() != null) {
+                getSupportActionBar().setSubtitle(myArtist.getName());
+            }
 
             //Update the fragment with new results.
             FragmentManager fm = getSupportFragmentManager();
@@ -158,12 +155,19 @@ public class MainActivity extends AppCompatActivity
 
         } else {
             TrackListFragment trackListFragment = TrackListFragment.newInstance(myArtist.getId(), myArtist.getName());
-            // Add the fragment to the backstack
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.content_frame, trackListFragment, TrackListFragment.FRAGMENT_TAG)
-                    .addToBackStack(ArtistListFragment.FRAGMENT_TAG)
-                    .commit();
+            loadFragment(trackListFragment, TrackListFragment.FRAGMENT_TAG);
         }
+
+    }
+
+    private void loadFragment(Fragment fragment, String tag) {
+
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+        
+        ft.addToBackStack(tag);
+        ft.add(R.id.content_frame, fragment, tag);
+        ft.commit();
 
     }
 
@@ -171,9 +175,6 @@ public class MainActivity extends AppCompatActivity
     public void onTrackSelected(int position) {
 
         FragmentManager fm = getSupportFragmentManager();
-
-        // We handle displaying the dialog fragment here instead of using a Callback, since
-        // the host activity may not exist.
 
         // Depending on the device size, dialog will either be fullscreen or floating.
         PlayerDialogFragment playerDialogFragment
@@ -184,23 +185,9 @@ public class MainActivity extends AppCompatActivity
             playerDialogFragment.show(fm, PlayerDialogFragment.FRAGMENT_TAG);
         } else {
             // Add the fragment to the backstack
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.content_frame, playerDialogFragment, TrackListFragment.FRAGMENT_TAG)
-                    .addToBackStack(PlayerDialogFragment.FRAGMENT_TAG)
-                    .commit();
+            loadFragment(playerDialogFragment, PlayerDialogFragment.FRAGMENT_TAG);
 
-            //TODO: Look at the difference between this and how you did it above
-//            // The device is smaller, so show the fragment fullscreen
-//            FragmentTransaction transaction = fm.beginTransaction();
-//            // For a little polish, specify a transition animation
-//            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-//            // To make it fullscreen, use the 'content' root view as the container
-//            // for the fragment, which is always the root view for the activity
-//            transaction.add(android.R.id.content, playerDialogFragment)
-//                    .addToBackStack(null).commit();
         }
-
-
 
     }
 
@@ -233,6 +220,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (id == R.id.action_now_playing) {
+
             Intent i = new Intent(getApplicationContext(),PlayerActivity.class);
             startActivity(i);
         }
@@ -240,6 +228,20 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onBackPressed() {
+        FragmentManager manager = getSupportFragmentManager();
+        int count = manager.getBackStackEntryCount();
+        Log.v("asdf", "onBackPressed");
+
+        if(count==0) {
+            Log.v("asdf", "super");
+            super.onBackPressed();
+        }else{
+            Log.v("asdf", "pop");
+            manager.popBackStackImmediate();
+        }
+    }
 
     @Override
     protected void onResume() {
@@ -251,7 +253,6 @@ public class MainActivity extends AppCompatActivity
     // Here we control the actionbar and anything else that is fragment-visible dependent
     @Override
     public void onBackStackChanged() {
-        Log.v("asdf", "onBackStackChangedMethod");
 
 
 

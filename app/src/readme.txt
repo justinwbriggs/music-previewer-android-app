@@ -27,3 +27,6 @@ whatever reason onDestroy is not called, we'll need to also call it at app creat
 
     Artist List Screen:
         - Go to the track list screen, rotate to landscape, rotate to portrait, back to ArtistList.
+
+    - When navigating to the the currently playing track via the Now Playing button, each rotation adds
+    a new fragment

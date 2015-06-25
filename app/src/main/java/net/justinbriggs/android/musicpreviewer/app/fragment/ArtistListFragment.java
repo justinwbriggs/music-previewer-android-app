@@ -36,13 +36,14 @@ import kaaes.spotify.webapi.android.models.Pager;
 public class ArtistListFragment extends Fragment {
 
     public static final String FRAGMENT_TAG = TrackListFragment.class.getSimpleName();
+    public static final String LIST_KEY = "list_key";
 
     public interface Listener {
         void onArtistSelected(MyArtist artist);
     }
 
     private Listener mListener;
-    private ArrayList<MyArtist> mArtists;
+    private ArrayList<MyArtist> mArtists = new ArrayList<>();
     private ArtistListAdapter mArtistListAdapter;
     private ListView mListView;
     private EditText mEdtSearch;
@@ -52,27 +53,29 @@ public class ArtistListFragment extends Fragment {
         return f;
     }
 
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        mArtists = new ArrayList<>();
-        if(savedInstanceState != null && savedInstanceState.containsKey("test")) {
-            mArtists = savedInstanceState.getParcelableArrayList("test");
-        }
+        //TODO: mArtists is always null if you go to track screen, rotate twice, and come back to this screen.
 
-        //TODO: This is a quick fix and needs to be addressed. mArtists is always null if you go to
-        // track screen, rotate twice, and come back to this screen.
-        if(mArtists == null) {
-            mArtists = new ArrayList<>();
+        View rootView = inflater.inflate(R.layout.fragment_track_list, container, false);
+
+        if(savedInstanceState != null && savedInstanceState.containsKey(LIST_KEY)) {
+            if(mArtists != null) {
+                mArtists = savedInstanceState.getParcelableArrayList(LIST_KEY);
+            }
         }
 
         mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtists);
-        //Log.v("asdf", "adapterCount: " + mArtistListAdapter.getCount());
 
-
-        View rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
+        rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
 
         mEdtSearch = (EditText)rootView.findViewById(R.id.edt_search);
         mEdtSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -185,7 +188,6 @@ public class ArtistListFragment extends Fragment {
                 Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
             }
         });
-
     }
 
 
@@ -205,9 +207,14 @@ public class ArtistListFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList("test", mArtists);
+        outState.putParcelableArrayList(LIST_KEY, mArtists);
 
     }
 }
