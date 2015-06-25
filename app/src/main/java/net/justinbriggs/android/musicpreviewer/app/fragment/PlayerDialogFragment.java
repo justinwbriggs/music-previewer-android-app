@@ -14,6 +14,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,9 +34,7 @@ public class PlayerDialogFragment extends DialogFragment {
 
 
     public static final String FRAGMENT_TAG = PlayerDialogFragment.class.getSimpleName();
-
     private static final int PREVIEW_DURATION = 30000;
-
 
     boolean mHasRun;
     boolean mFromActionBar;
@@ -88,7 +87,6 @@ public class PlayerDialogFragment extends DialogFragment {
         } else if(getArguments() != null && getArguments().containsKey(SongService.POSITION_KEY)) {
             mPosition = getArguments().getInt(SongService.POSITION_KEY);
         } else {
-
             // This implies that the DialogFragment is being created from the Now Playing button.
             mFromActionBar = true;
             // Get mPosition from the running service in order to update the ui correctly.
@@ -112,6 +110,7 @@ public class PlayerDialogFragment extends DialogFragment {
         mIbPausePlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Log.v("asdf", "PlayClicked");
                 sendMediaControlAction(SongService.ACTION_PLAY_PAUSE);
             }
         });
@@ -193,6 +192,7 @@ public class PlayerDialogFragment extends DialogFragment {
 
     private void updateUi() {
 
+        Log.v("asdf", "updateUi");
         //TODO: Might make this an instance variable.
         Cursor cursor = mContentResolver.query(
                 MusicContract.TrackEntry.CONTENT_URI,

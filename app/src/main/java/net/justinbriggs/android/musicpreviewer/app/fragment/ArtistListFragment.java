@@ -54,28 +54,16 @@ public class ArtistListFragment extends Fragment {
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        //TODO: mArtists is always null if you go to track screen, rotate twice, and come back to this screen.
-
-        View rootView = inflater.inflate(R.layout.fragment_track_list, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
 
         if(savedInstanceState != null && savedInstanceState.containsKey(LIST_KEY)) {
-            if(mArtists != null) {
-                mArtists = savedInstanceState.getParcelableArrayList(LIST_KEY);
-            }
+            mArtists = savedInstanceState.getParcelableArrayList(LIST_KEY);
         }
 
         mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtists);
-
-        rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
 
         mEdtSearch = (EditText)rootView.findViewById(R.id.edt_search);
         mEdtSearch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -98,10 +86,6 @@ public class ArtistListFragment extends Fragment {
                 return false;
             }
         });
-
-        // Let onResume take care of populating the list view, since it is called when both
-        // the device is reoriented, when returning from another activity via the Back button,
-        // and when returning from another activity via the Up button
 
         mListView = (ListView) rootView.findViewById(R.id.listview_artist);
         mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
@@ -204,11 +188,6 @@ public class ArtistListFragment extends Fragment {
                     + " must implement OnItemSelectedListener");
         }
 
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
     }
 
     @Override

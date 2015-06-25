@@ -1,13 +1,11 @@
 package net.justinbriggs.android.musicpreviewer.app.activity;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -64,9 +62,6 @@ public class MainActivity extends AppCompatActivity
 
             mTwoPane = false;
 
-            // We'll be working with a content frame to swap out fragments.
-            FragmentManager fm = getSupportFragmentManager();
-
             // TODO: Figure out why this works this way.
             // http://stackoverflow.com/questions/27723968/
             // This is a peculiar necessity. Leaving it out will cause a fragment created in this
@@ -101,8 +96,6 @@ public class MainActivity extends AppCompatActivity
         if(!mTwoPane) {
 
             Fragment f = getSupportFragmentManager().findFragmentById(R.id.content_frame);
-
-            //MenuItem menuBtnPlaying = mMenu.findItem(R.id.action_now_playing);
 
             if (f instanceof ArtistListFragment) {
                 actionBar.setTitle(getString(R.string.app_name));
@@ -164,8 +157,9 @@ public class MainActivity extends AppCompatActivity
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-        
+
         ft.addToBackStack(tag);
+        // Use add instead of replace in order to maintain the fragment view.
         ft.add(R.id.content_frame, fragment, tag);
         ft.commit();
 
@@ -209,9 +203,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+
+        //The action bar automatically handles clicks on Home/Up button if you specify a parent
+        // activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
@@ -220,9 +214,13 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (id == R.id.action_now_playing) {
+            PlayerDialogFragment playerDialogFragment = new PlayerDialogFragment();
+            if (mIsLargeLayout) {
+                playerDialogFragment.show(getSupportFragmentManager(), PlayerDialogFragment.FRAGMENT_TAG);
+            } else {
+                loadFragment(playerDialogFragment, PlayerDialogFragment.FRAGMENT_TAG);
+            }
 
-            Intent i = new Intent(getApplicationContext(),PlayerActivity.class);
-            startActivity(i);
         }
 
         return super.onOptionsItemSelected(item);
@@ -230,15 +228,12 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
+
         FragmentManager manager = getSupportFragmentManager();
         int count = manager.getBackStackEntryCount();
-        Log.v("asdf", "onBackPressed");
-
         if(count==0) {
-            Log.v("asdf", "super");
             super.onBackPressed();
         }else{
-            Log.v("asdf", "pop");
             manager.popBackStackImmediate();
         }
     }
@@ -253,8 +248,6 @@ public class MainActivity extends AppCompatActivity
     // Here we control the actionbar and anything else that is fragment-visible dependent
     @Override
     public void onBackStackChanged() {
-
-
 
     }
 
