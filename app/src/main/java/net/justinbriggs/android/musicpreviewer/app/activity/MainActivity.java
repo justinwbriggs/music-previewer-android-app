@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity
             //Create a new TrackListFragment that initially displays nothing.
             if (savedInstanceState == null) {
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.track_list_container, new TrackListFragment(), TrackListFragment.FRAGMENT_TAG)
+                        .replace(R.id.track_list_container, TrackListFragment.newInstance(null, null), TrackListFragment.FRAGMENT_TAG)
                         .commit();
             }
 
@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity
                 getSupportActionBar().setElevation(0f);
             }
         }
-        
+
         FragmentManager fmm = getSupportFragmentManager();
         fmm.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
             @Override
@@ -95,8 +95,6 @@ public class MainActivity extends AppCompatActivity
     //TODO: This is weird but it works. Probably better to just define listeners in the
     // fragment to tell the host when it is visible.
     private void setActionBar() {
-
-        Log.v("asdf", "setActionBar: ");
 
         ActionBar actionBar = getSupportActionBar();
         if(actionBar == null) {
@@ -119,6 +117,12 @@ public class MainActivity extends AppCompatActivity
                 actionBar.setSubtitle("");
                 actionBar.setDisplayHomeAsUpEnabled(false);
             }
+        } else {
+            // Don't need the homeup button for large layouts
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            getSupportActionBar().setHomeButtonEnabled(false);
+
+
         }
     }
 
@@ -126,6 +130,11 @@ public class MainActivity extends AppCompatActivity
     public void onArtistSelected(MyArtist myArtist) {
 
         if(mTwoPane) {
+
+                // Update the subtitle with the artist name
+                if(getSupportActionBar() != null) {
+                    getSupportActionBar().setSubtitle(myArtist.getName());
+                }
 
             //Update the fragment with new results.
             FragmentManager fm = getSupportFragmentManager();

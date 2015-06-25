@@ -65,7 +65,11 @@ public class TrackListFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
-        mArtistId = getArguments().getString(EXTRA_ID);
+
+        if(getArguments().containsKey(EXTRA_ID)) {
+            mArtistId = getArguments().getString(EXTRA_ID);
+        }
+        if(getArguments().containsKey(EXTRA_NAME))
         mArtistName = getArguments().getString(EXTRA_NAME);
 
     }
@@ -216,9 +220,13 @@ public class TrackListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+
+        //TODO: This needs to be handled via callback, as mentioned in MainActivity
         ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
         if(actionBar != null) {
             actionBar.setSubtitle(mArtistName);
+
+
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
     }
