@@ -11,20 +11,17 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
+import net.justinbriggs.android.musicpreviewer.app.model.MyArtist;
 
 import java.util.ArrayList;
-import java.util.List;
-
-import kaaes.spotify.webapi.android.models.Artist;
-import kaaes.spotify.webapi.android.models.Image;
 
 
-public class ArtistListAdapter extends ArrayAdapter<Artist> {
+public class ArtistListAdapter extends ArrayAdapter<MyArtist> {
 
-    private ArrayList<Artist> mArtists;
+    private ArrayList<MyArtist> mArtists;
     private Context mContext;
 
-    public ArtistListAdapter(Context context, ArrayList<Artist> artists) {
+    public ArtistListAdapter(Context context, ArrayList<MyArtist> artists) {
         super(context, R.layout.list_item_artist, artists);
         mArtists = artists;
         mContext = context;
@@ -33,7 +30,7 @@ public class ArtistListAdapter extends ArrayAdapter<Artist> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        Artist artist = mArtists.get(position);
+        MyArtist artist = mArtists.get(position);
 
         LayoutInflater inflater = (LayoutInflater) mContext
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -42,18 +39,21 @@ public class ArtistListAdapter extends ArrayAdapter<Artist> {
         ImageView ivArtist = (ImageView) rowView.findViewById(R.id.iv_artist);
         try {
 
-            List<Image> images = artist.images;
+            //List<Image> images = artist.get;
 
             // Always get the last image, which should be the 64 px size, but may not be included.
-            Picasso.with(mContext).load(images.get(images.size()-1).url)
+            Picasso.with(mContext).load(artist.getImageUrl())
                     .placeholder(R.drawable.ic_placeholder)
                     .into(ivArtist);
+//            Picasso.with(mContext).load(images.get(images.size()-1).url)
+//                    .placeholder(R.drawable.ic_placeholder)
+//                    .into(ivArtist);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         TextView tvName = (TextView) rowView.findViewById(R.id.tv_name);
-        tvName.setText(artist.name);
+        tvName.setText(artist.getName());
         return rowView;
 
     }

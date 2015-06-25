@@ -5,16 +5,15 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
-import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
 import net.justinbriggs.android.musicpreviewer.app.fragment.ArtistListFragment;
 import net.justinbriggs.android.musicpreviewer.app.fragment.PlayerDialogFragment;
 import net.justinbriggs.android.musicpreviewer.app.fragment.TrackListFragment;
-
-import kaaes.spotify.webapi.android.models.Artist;
+import net.justinbriggs.android.musicpreviewer.app.model.MyArtist;
 
 public class MainActivity extends AppCompatActivity
         implements ArtistListFragment.Listener,
@@ -34,11 +33,6 @@ public class MainActivity extends AppCompatActivity
     // TODO: Need to record the selected position of the list views
     // TODO: Retain state of subtitle
     // TODO: Create an app icon, and a placeholder icon for list items
-
-    private static final String[] TRACKS_PROJECTION = new String[] {
-            MusicContract.TrackEntry.COLUMN_ARTIST_NAME,
-            MusicContract.TrackEntry.COLUMN_ALBUM_NAME
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,12 +58,26 @@ public class MainActivity extends AppCompatActivity
         } else {
 
             mTwoPane = false;
+
             // We'll be working with a content frame to swap out fragments.
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.content_frame, new ArtistListFragment(),
-                            ArtistListFragment.FRAGMENT_TAG)
-                    .addToBackStack(ArtistListFragment.FRAGMENT_TAG)
-                    .commit();
+            FragmentManager fm = getSupportFragmentManager();
+
+            Log.v("asdf", "fm Count: " + fm.getFragments().size());
+
+
+            // TODO: Figure out why this works this way.
+            // http://stackoverflow.com/questions/27723968/
+            // This is a peculiar necessity. Leaving it out will cause a fragment created in this
+            // manner to fire onCreateView twice. So don't recreate it if already exists in fm.
+            // It can also be accomplished with: if(fm.findFragmentByTag("theTag") != null)
+            if(savedInstanceState == null) {
+                fm.beginTransaction()
+                        .replace(R.id.content_frame, ArtistListFragment.newInstance(),
+                                ArtistListFragment.FRAGMENT_TAG)
+                        .addToBackStack(ArtistListFragment.FRAGMENT_TAG)
+                        .commit();
+            }
+
             if(getSupportActionBar() != null) {
                 getSupportActionBar().setElevation(0f);
             }
@@ -78,7 +86,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onArtistSelected(Artist artist) {
+    public void onArtistSelected(MyArtist myArtist) {
 
         if(mTwoPane) {
 
@@ -86,15 +94,10 @@ public class MainActivity extends AppCompatActivity
             FragmentManager fm = getSupportFragmentManager();
             TrackListFragment trackListFragment = (TrackListFragment) fm
                     .findFragmentByTag(TrackListFragment.FRAGMENT_TAG);
-            trackListFragment.fetchTracks(artist.id);
-
-            // Set the subtitle
-            if (getSupportActionBar() != null) {
-                getSupportActionBar().setSubtitle(artist.name);
-            }
+            trackListFragment.fetchTracks(myArtist.getId());
 
         } else {
-            TrackListFragment trackListFragment = TrackListFragment.newInstance(artist.id,artist.name);
+            TrackListFragment trackListFragment = TrackListFragment.newInstance(myArtist.getId(), myArtist.getName());
             // Add the fragment to the backstack
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.content_frame, trackListFragment, TrackListFragment.FRAGMENT_TAG)

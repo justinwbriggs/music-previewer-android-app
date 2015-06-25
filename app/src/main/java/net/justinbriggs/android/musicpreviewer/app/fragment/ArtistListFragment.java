@@ -5,6 +5,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +13,6 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -20,13 +20,16 @@ import android.widget.Toast;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.adapter.ArtistListAdapter;
+import net.justinbriggs.android.musicpreviewer.app.model.MyArtist;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
+import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Pager;
 
 //TODO: Highlight selected list item.
@@ -36,14 +39,19 @@ public class ArtistListFragment extends Fragment {
     public static final String FRAGMENT_TAG = TrackListFragment.class.getSimpleName();
 
     public interface Listener {
-        void onArtistSelected(Artist artist);
+        void onArtistSelected(MyArtist artist);
     }
 
     private Listener mListener;
-    private ArrayList<Artist> mArtists = new ArrayList<>();
-    private ArrayAdapter<Artist> mArtistListAdapter;
+    private ArrayList<MyArtist> mArtists;
+    private ArtistListAdapter mArtistListAdapter;
     private ListView mListView;
     private EditText mEdtSearch;
+
+    public static ArtistListFragment newInstance() {
+        ArtistListFragment f = new ArtistListFragment();
+        return f;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -54,6 +62,17 @@ public class ArtistListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        if(savedInstanceState != null && savedInstanceState.containsKey("test")) {
+            mArtists = savedInstanceState.getParcelableArrayList("test");
+
+        } else {
+            mArtists = new ArrayList<>();
+        }
+
+        mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtists);
+        Log.v("asdf", "adapterCount: " + mArtistListAdapter.getCount());
+
 
         View rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
 
@@ -82,7 +101,6 @@ public class ArtistListFragment extends Fragment {
         // Let onResume take care of populating the list view, since it is called when both
         // the device is reoriented, when returning from another activity via the Back button,
         // and when returning from another activity via the Up button
-        mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtists);
 
         mListView = (ListView) rootView.findViewById(R.id.listview_artist);
         mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
@@ -92,7 +110,7 @@ public class ArtistListFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
 
-                Artist artist = mArtistListAdapter.getItem(position);
+                MyArtist artist = mArtistListAdapter.getItem(position);
                 mListener.onArtistSelected(artist);
                 view.setSelected(true);
 
@@ -145,7 +163,19 @@ public class ArtistListFragment extends Fragment {
                 Pager<Artist> pager = result.artists;
                 mArtistListAdapter.clear();
                 for(Artist artist: pager.items) {
-                    mArtistListAdapter.add(artist);
+
+                    //TODO: Make this a static method in the MyArtist class
+
+                    // Turning each Spotify Artist into a parcelable MyArtist
+                    MyArtist myArtist = new MyArtist();
+                    myArtist.setId(artist.id);
+                    myArtist.setName(artist.name);
+                    List<Image> images = artist.images;
+                    if(images.size() > 0) {
+                        myArtist.setImageUrl(images.get(images.size()-1).url);
+                    }
+                    mArtistListAdapter.add(myArtist);
+
                 }
             }
         }
@@ -175,5 +205,10 @@ public class ArtistListFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList("test", mArtists);
 
+    }
 }
