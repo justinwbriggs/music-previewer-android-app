@@ -1,13 +1,11 @@
 package net.justinbriggs.android.musicpreviewer.app.fragment;
 
+import android.app.Activity;
 import android.content.ContentValues;
-import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,7 +16,6 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
-import net.justinbriggs.android.musicpreviewer.app.activity.TrackListActivity;
 import net.justinbriggs.android.musicpreviewer.app.adapter.TrackListAdapter;
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
 
@@ -33,29 +30,42 @@ import kaaes.spotify.webapi.android.models.Track;
 
 public class TrackListFragment extends Fragment {
 
-    public static final String FRAGMENT_TAG = TrackListFragment.class.getSimpleName();
+    public interface Listener {
+        void onAlbumSelected(int position);
+    }
 
+    public static final String FRAGMENT_TAG = TrackListFragment.class.getSimpleName();
+    public static final String EXTRA_ID = "artist_id_key";
+    public static final String EXTRA_NAME = "artist_name_key";
+
+    private Listener mListener;
     private String mArtistId;
     private String mArtistName;
     private TrackListAdapter mTrackListAdapter;
     boolean mIsLargeLayout;
 
+    public static TrackListFragment newInstance(String artistId, String artistName) {
+
+        //TODO: We'll be passing the position off to the SongService for now, but keeping it in sync
+        // is going to be an issue. Might want to see if you can just allow for this dialog to
+        // get the current position from the SongService.
+        TrackListFragment f = new TrackListFragment();
+        Bundle args = new Bundle();
+        args.putString(EXTRA_ID, artistId);
+        args.putString(EXTRA_NAME, artistName);
+        f.setArguments(args);
+
+        return f;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setHasOptionsMenu(true);
         mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
 
-        // If the Activity was launched in OnePane mode, get the intent args.
-        Intent intent = getActivity().getIntent();
-
-        if(intent != null && intent.hasExtra(ArtistListFragment.EXTRA_ARTIST_ID)) {
-            mArtistId = intent.getStringExtra(ArtistListFragment.EXTRA_ARTIST_ID);
-        }
-        if(intent != null && intent.hasExtra(ArtistListFragment.EXTRA_ARTIST_NAME)) {
-            mArtistName = intent.getStringExtra(ArtistListFragment.EXTRA_ARTIST_NAME);
-        }
+        mArtistId = getArguments().getString(EXTRA_ID);
+        mArtistName = getArguments().getString(EXTRA_NAME);
 
     }
 
@@ -74,29 +84,8 @@ public class TrackListFragment extends Fragment {
 
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-
-                FragmentManager fm = getActivity().getSupportFragmentManager();
-
-                // We handle displaying the dialog fragment here instead of using a Callback, since
-                // the host activity may not exist.
-
-                // Depending on the device size, dialog will either be fullscreen or floating.
-                PlayerDialogFragment playerDialogFragment
-                        = PlayerDialogFragment.newInstance(position);
-
-                if (mIsLargeLayout) {
-                    // The device is using a large layout, so show the fragment as a dialog
-                    playerDialogFragment.show(fm, PlayerDialogFragment.FRAGMENT_TAG);
-                } else {
-                    // The device is smaller, so show the fragment fullscreen
-                    FragmentTransaction transaction = fm.beginTransaction();
-                    // For a little polish, specify a transition animation
-                    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-                    // To make it fullscreen, use the 'content' root view as the container
-                    // for the fragment, which is always the root view for the activity
-                    transaction.add(android.R.id.content, playerDialogFragment)
-                            .addToBackStack(null).commit();
-                }
+                // Let the host activity sort out navigation.
+                mListener.onAlbumSelected(position);
             }
         });
 
@@ -137,17 +126,6 @@ public class TrackListFragment extends Fragment {
     public void fetchTracks(String artistId) {
         FetchTracksTask tracksTask = new FetchTracksTask();
         tracksTask.execute(artistId);
-    }
-
-    public void onResume(){
-        super.onResume();
-
-        // Set subtitle
-        if(getActivity().getActionBar() != null){
-            ((TrackListActivity) getActivity())
-                    .setActionBarSubtitle(mArtistName);
-        }
-
     }
 
     public class FetchTracksTask extends AsyncTask<String, Void, List<Track>> {
@@ -237,6 +215,21 @@ public class TrackListFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-
     }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        // This makes sure that the container activity has implemented
+        // the callback interface. If not, it throws an exception
+        try {
+            mListener = (Listener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnItemSelectedListener");
+        }
+    }
+
+
 }

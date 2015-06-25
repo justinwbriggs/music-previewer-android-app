@@ -79,7 +79,6 @@ public class PlayerDialogFragment extends DialogFragment {
         mContentResolver = getActivity().getContentResolver();
 
         setRetainInstance(true);
-        setHasOptionsMenu(true);
 
         // The position can either be defined from the bundle sent from TrackListFragment, or
         // from being saved on rotation.
@@ -341,14 +340,6 @@ public class PlayerDialogFragment extends DialogFragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(SongService.POSITION_KEY, mPosition);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.main, menu);
-
-        menu.findItem(R.id.action_now_playing).setVisible(true);
     }
 
     @Override

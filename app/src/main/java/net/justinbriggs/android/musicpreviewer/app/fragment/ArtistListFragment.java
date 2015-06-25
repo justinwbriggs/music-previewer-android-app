@@ -1,13 +1,12 @@
 package net.justinbriggs.android.musicpreviewer.app.fragment;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
@@ -21,7 +20,6 @@ import android.widget.Toast;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.adapter.ArtistListAdapter;
-import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
 import java.util.ArrayList;
 
@@ -35,18 +33,17 @@ import kaaes.spotify.webapi.android.models.Pager;
 
 public class ArtistListFragment extends Fragment {
 
-    public interface Callback {
-        void onItemSelected(Artist artist);
+    public static final String FRAGMENT_TAG = TrackListFragment.class.getSimpleName();
+
+    public interface Listener {
+        void onArtistSelected(Artist artist);
     }
 
-    public static final String EXTRA_ARTIST_ID = "artist_id"; // The artist id to pass
-    public static final String EXTRA_ARTIST_NAME = "artist_name"; // The artist name to past
-
+    private Listener mListener;
     private ArrayList<Artist> mArtists = new ArrayList<>();
     private ArrayAdapter<Artist> mArtistListAdapter;
     private ListView mListView;
     private EditText mEdtSearch;
-    private Menu mMenu;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -82,7 +79,6 @@ public class ArtistListFragment extends Fragment {
             }
         });
 
-
         // Let onResume take care of populating the list view, since it is called when both
         // the device is reoriented, when returning from another activity via the Back button,
         // and when returning from another activity via the Up button
@@ -97,21 +93,13 @@ public class ArtistListFragment extends Fragment {
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
 
                 Artist artist = mArtistListAdapter.getItem(position);
-                ((Callback)getActivity()).onItemSelected(artist);
+                mListener.onArtistSelected(artist);
                 view.setSelected(true);
 
             }
         });
 
         return rootView;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if(SongService.sIsInitialized) {
-            mMenu.findItem(R.id.action_now_playing).setVisible(true);
-        }
     }
 
     private void fetchArtists(String artistName) {
@@ -172,16 +160,20 @@ public class ArtistListFragment extends Fragment {
 
     }
 
+
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.main, menu);
-        mMenu = menu;
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        // This makes sure that the container activity has implemented
+        // the callback interface. If not, it throws an exception
+        try {
+            mListener = (Listener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnItemSelectedListener");
+        }
     }
-
-
-
-
 
 
 }
