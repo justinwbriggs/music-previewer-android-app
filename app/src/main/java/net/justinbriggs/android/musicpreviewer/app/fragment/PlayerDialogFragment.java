@@ -13,7 +13,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -61,9 +60,6 @@ public class PlayerDialogFragment extends DialogFragment {
 
     public static PlayerDialogFragment newInstance(int position) {
 
-        //TODO: We'll be passing the position off to the SongService for now, but keeping it in sync
-        // is going to be an issue. Might want to see if you can just allow for this dialog to
-        // get the current position from the SongService.
         PlayerDialogFragment f = new PlayerDialogFragment();
         Bundle args = new Bundle();
         args.putInt(SongService.POSITION_KEY, position);
@@ -94,9 +90,7 @@ public class PlayerDialogFragment extends DialogFragment {
             mFromActionBar = true;
             // Get mPosition from the running service in order to update the ui correctly.
             sendMediaControlAction(SongService.ACTION_GET_POSITION);
-
         }
-
 
         View rootView = inflater.inflate(R.layout.dialog_fragment_player, container, false);
 
@@ -113,7 +107,6 @@ public class PlayerDialogFragment extends DialogFragment {
         mIbPausePlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.v("asdf", "PlayClicked");
                 sendMediaControlAction(SongService.ACTION_PLAY_PAUSE);
             }
         });
@@ -195,7 +188,6 @@ public class PlayerDialogFragment extends DialogFragment {
 
     private void updateUi() {
 
-        //TODO: Might make this an instance variable.
         Cursor cursor = mContentResolver.query(
                 MusicContract.TrackEntry.CONTENT_URI,
                 null, // leaving "columns" null just returns all the columns.
@@ -233,6 +225,8 @@ public class PlayerDialogFragment extends DialogFragment {
             }
         });
 
+
+        //TODO: when you click a new artist while an artist is playing, then click now playing, crash
         mTxtArtist.setText(cursor.getString(2));
         mTxtAlbum.setText(cursor.getString(1));
         try {
@@ -357,6 +351,5 @@ public class PlayerDialogFragment extends DialogFragment {
             actionBar.setTitle(getString(R.string.app_name));
         }
     }
-
 
 }

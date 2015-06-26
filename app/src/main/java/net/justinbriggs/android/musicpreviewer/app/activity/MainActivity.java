@@ -23,14 +23,9 @@ public class MainActivity extends AppCompatActivity
     private boolean mTwoPane;
     private boolean mIsLargeLayout;
 
-
     // TODO: go through all the courses and add comments
     // See if you can take advantage of the manifest
     // Here's a way this might be accomplished: http://stackoverflow.com/questions/23811136
-
-    // TODO: Need to record the selected position of the list views
-    // TODO: Create an app icon, and a placeholder icon for list items
-    // TODO: There is a bug advancing tracks
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,12 +58,10 @@ public class MainActivity extends AppCompatActivity
                 getSupportActionBar().setHomeButtonEnabled(false);
             }
 
-            // TODO: Figure out why this works this way.
             // http://stackoverflow.com/questions/27723968/
             // This is a peculiar necessity. Leaving it out will cause a fragment created in this
             // manner to fire onCreateView twice. So don't recreate it if already exists in fm.
             // It can also be accomplished with: if(fm.findFragmentByTag("theTag") != null)
-
             if(savedInstanceState == null) {
                 loadFragment(ArtistListFragment.newInstance(), ArtistListFragment.FRAGMENT_TAG);
             }
@@ -107,7 +100,6 @@ public class MainActivity extends AppCompatActivity
         // Use add instead of replace in order to maintain the fragment view.
         ft.add(R.id.content_frame, fragment, tag);
         ft.commit();
-
     }
 
     @Override
@@ -130,7 +122,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
@@ -170,7 +161,7 @@ public class MainActivity extends AppCompatActivity
         int count = manager.getBackStackEntryCount();
         if(count==0) {
             super.onBackPressed();
-        }else{
+        } else{
             manager.popBackStackImmediate();
         }
     }

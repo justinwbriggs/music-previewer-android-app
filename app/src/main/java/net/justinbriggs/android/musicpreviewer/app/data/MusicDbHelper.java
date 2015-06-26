@@ -3,7 +3,6 @@ package net.justinbriggs.android.musicpreviewer.app.data;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract.TrackEntry;
 
@@ -25,7 +24,6 @@ public class MusicDbHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
 
-        Log.v("asdf", "oncReateMusicDbHelper: ");
         // Create a table to hold tracks.
         final String SQL_CREATE_TRACK_TABLE = "CREATE TABLE " + TrackEntry.TABLE_NAME + " (" +
                 TrackEntry._ID + " INTEGER PRIMARY KEY, " +

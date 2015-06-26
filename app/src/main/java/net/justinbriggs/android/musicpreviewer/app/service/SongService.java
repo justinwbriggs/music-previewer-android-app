@@ -3,14 +3,12 @@ package net.justinbriggs.android.musicpreviewer.app.service;
 import android.app.Service;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
 
@@ -114,8 +112,6 @@ public class SongService extends Service {
                         null, // values for "where" clause
                         null // Sort order
                 );
-                //TODO: Is there any way I can just allow the SongService to deliver the current
-                // track position to the dialog?
 
                 mCursor.moveToPosition(intent.getIntExtra(POSITION_KEY,0));
                 setPlayerDataSource();
@@ -171,7 +167,6 @@ public class SongService extends Service {
         mPlayer.reset();
         try {
             //TODO: Go back and add constants for the column keys.
-            Log.v("qwer", "mCursor: " + DatabaseUtils.dumpCursorToString(mCursor));
             String url = mCursor.getString(5);
             mPlayer.setDataSource(url);
             mPlayer.prepareAsync();
@@ -256,7 +251,6 @@ public class SongService extends Service {
         if(!mCursor.moveToNext()) {
             mCursor.moveToPosition(0);
         }
-
         setPlayerDataSource();
     }
 
@@ -265,7 +259,7 @@ public class SongService extends Service {
         // Go to the last track position if you are on the first.
         if(!mCursor.moveToPrevious()) {
             mCursor.moveToPosition(mCursor.getCount() - 1);
-        } 
+        }
         setPlayerDataSource();
     }
 

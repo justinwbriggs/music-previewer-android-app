@@ -81,7 +81,6 @@ public class TrackListFragment extends Fragment {
             mArtistName = savedInstanceState.getString(EXTRA_NAME);
         }
 
-
     }
 
     @Override
@@ -182,11 +181,9 @@ public class TrackListFragment extends Fragment {
                     contentValues[i] = trackValues;
                 }
 
-
                 // Add the tracks to the db
                 getActivity().getContentResolver()
                         .bulkInsert(MusicContract.TrackEntry.CONTENT_URI, contentValues);
-
 
                 return tracks;
 
@@ -195,7 +192,6 @@ public class TrackListFragment extends Fragment {
             }
 
             return null;
-
         }
 
         @Override
