@@ -3,12 +3,14 @@ package net.justinbriggs.android.musicpreviewer.app.service;
 import android.app.Service;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
 
@@ -169,9 +171,9 @@ public class SongService extends Service {
         mPlayer.reset();
         try {
             //TODO: Go back and add constants for the column keys.
+            Log.v("qwer", "mCursor: " + DatabaseUtils.dumpCursorToString(mCursor));
             String url = mCursor.getString(5);
             mPlayer.setDataSource(url);
-            //TODO: Confirm that this keeps media off main thread.
             mPlayer.prepareAsync();
         } catch (IOException e) {
             e.printStackTrace();
@@ -183,7 +185,8 @@ public class SongService extends Service {
         }
 
         // Notify the UI that the track has changed.
-//        sendPlayerBroadcast(BROADCAST_TRACK_CHANGED);
+        sendPlayerBroadcast(BROADCAST_TRACK_CHANGED);
+
 //
 //        NotificationCompat.Builder mBuilder =
 //                new NotificationCompat.Builder(this)
@@ -252,8 +255,6 @@ public class SongService extends Service {
         // Go to the first track position if you are on the last.
         if(!mCursor.moveToNext()) {
             mCursor.moveToPosition(0);
-        } else {
-            mCursor.moveToNext();
         }
 
         setPlayerDataSource();
@@ -264,9 +265,7 @@ public class SongService extends Service {
         // Go to the last track position if you are on the first.
         if(!mCursor.moveToPrevious()) {
             mCursor.moveToPosition(mCursor.getCount() - 1);
-        } else {
-            mCursor.moveToPrevious();
-        }
+        } 
         setPlayerDataSource();
     }
 

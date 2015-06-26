@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
@@ -312,7 +311,6 @@ public class PlayerDialogFragment extends DialogFragment {
             } else if(intent.getAction().equals(SongService.BROADCAST_PAUSE)) {
                 mIbPausePlay.setImageResource(android.R.drawable.ic_media_play);
             } else if(intent.getAction().equals(SongService.BROADCAST_TRACK_CHANGED)) {
-                // TODO: We'll need to sync up the location between this fragment and the service.
                 mPosition = intent.getIntExtra(SongService.POSITION_KEY, 0);
                 updateUi();
             } else if(intent.getAction().equals(SongService.BROADCAST_TRACK_PROGRESS)) {
