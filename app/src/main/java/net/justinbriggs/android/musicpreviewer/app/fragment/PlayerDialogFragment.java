@@ -196,7 +196,6 @@ public class PlayerDialogFragment extends DialogFragment {
 
     private void updateUi() {
 
-        Log.v("asdf", "updateUi");
         //TODO: Might make this an instance variable.
         Cursor cursor = mContentResolver.query(
                 MusicContract.TrackEntry.CONTENT_URI,
@@ -255,23 +254,6 @@ public class PlayerDialogFragment extends DialogFragment {
 
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-
-        // Remove the Now Playing button from this fragment
-        inflater.inflate(R.menu.main, menu);
-        menu.findItem(R.id.action_now_playing).setVisible(false);
-
-        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-        if(actionBar != null) {
-            // Remove the home button and subtitle
-            actionBar.setDisplayHomeAsUpEnabled(false);
-            actionBar.setSubtitle("");
-            actionBar.setTitle(getString(R.string.app_name));
-        }
-    }
-
-    @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -283,20 +265,6 @@ public class PlayerDialogFragment extends DialogFragment {
         super.onResume();
         registerReceiver();
 
-        //TODO: Broken, always null
-        if(getDialog() != null) {
-            getDialog().setTitle(getString(R.string.app_name));
-        }
-
-        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-        if(actionBar != null) {
-
-            //actionBar.setTitle(getString(R.string.app_name));
-            //actionBar.setSubtitle("");
-            //actionBar.setDisplayHomeAsUpEnabled(false);
-            //actionBar.
-        }
-
     }
 
     @Override
@@ -305,7 +273,6 @@ public class PlayerDialogFragment extends DialogFragment {
 
         // Peculiar behaviour, exception happens on some configuration changes
         // Could be a bug: https://code.google.com/p/android/issues/detail?id=6191
-
         try {
             getActivity().unregisterReceiver(mReceiver);
         } catch(IllegalArgumentException e) {
@@ -369,10 +336,6 @@ public class PlayerDialogFragment extends DialogFragment {
         super.onDestroyView();
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -381,9 +344,21 @@ public class PlayerDialogFragment extends DialogFragment {
     }
 
     @Override
-    public void onDismiss(DialogInterface dialog) {
-        super.onDismiss(dialog);
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
 
+        // Remove the Now Playing button from this fragment
+        inflater.inflate(R.menu.main, menu);
+        menu.findItem(R.id.action_now_playing).setVisible(false);
+
+        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
+        if(actionBar != null) {
+            // Remove the home button and subtitle
+            actionBar.setDisplayHomeAsUpEnabled(false);
+            actionBar.setSubtitle("");
+            actionBar.setTitle(getString(R.string.app_name));
+        }
     }
+
 
 }

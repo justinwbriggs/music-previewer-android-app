@@ -4,7 +4,8 @@
     android:layout_height="match_parent"
     android:baselineAligned="false"
     android:divider="?android:attr/dividerHorizontal"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:background="@color/bg_app">
 
     <fragment
         android:id="@+id/fragment_artist_list"
@@ -17,7 +18,7 @@
     <View
         android:layout_width="1dp"
         android:layout_height="match_parent"
-        android:background="#484848"
+        android:background="@color/bg_pane_divider"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"/>
 

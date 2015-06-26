@@ -45,7 +45,6 @@ public class TrackListFragment extends Fragment {
     private String mArtistId;
     private String mArtistName;
     private TrackListAdapter mTrackListAdapter;
-    boolean mIsLargeLayout;
 
     public static TrackListFragment newInstance(String artistId, String artistName) {
 
@@ -67,18 +66,23 @@ public class TrackListFragment extends Fragment {
 
         setHasOptionsMenu(true);
 
-        mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
-
         if(getArguments().containsKey(EXTRA_ID)) {
             mArtistId = getArguments().getString(EXTRA_ID);
         }
-        if(getArguments().containsKey(EXTRA_NAME))
-        mArtistName = getArguments().getString(EXTRA_NAME);
+        if(getArguments().containsKey(EXTRA_NAME)) {
+            mArtistName = getArguments().getString(EXTRA_NAME);
+        }
+
+        if(savedInstanceState != null && savedInstanceState.containsKey(EXTRA_ID)) {
+            mArtistId = savedInstanceState.getString(EXTRA_ID);
+        }
+
+        if(savedInstanceState != null && savedInstanceState.containsKey(EXTRA_NAME)) {
+            mArtistName = savedInstanceState.getString(EXTRA_NAME);
+        }
+
 
     }
-
-
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -131,6 +135,7 @@ public class TrackListFragment extends Fragment {
     }
 
     public void fetchTracks(String artistId) {
+        mArtistId = artistId;
         FetchTracksTask tracksTask = new FetchTracksTask();
         tracksTask.execute(artistId);
     }
@@ -177,8 +182,11 @@ public class TrackListFragment extends Fragment {
                     contentValues[i] = trackValues;
                 }
 
-                int insertCount = getActivity().getContentResolver()
+
+                // Add the tracks to the db
+                getActivity().getContentResolver()
                         .bulkInsert(MusicContract.TrackEntry.CONTENT_URI, contentValues);
+
 
                 return tracks;
 
@@ -219,18 +227,6 @@ public class TrackListFragment extends Fragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-
-        //TODO: This needs to be handled via callback, as mentioned in MainActivity
-//        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-//        if(actionBar != null) {
-//            actionBar.setSubtitle(mArtistName);
-//            actionBar.setDisplayHomeAsUpEnabled(true);
-//        }
-    }
-
-    @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
@@ -244,7 +240,7 @@ public class TrackListFragment extends Fragment {
         }
     }
 
-    // It seems this gets called when the activity is resumed because we set hasOptionsMenu(true)
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -265,6 +261,11 @@ public class TrackListFragment extends Fragment {
 
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(EXTRA_ID, mArtistId);
+        outState.putString(EXTRA_NAME, mArtistName);
 
-
+    }
 }

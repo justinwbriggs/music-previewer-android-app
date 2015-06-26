@@ -39,15 +39,10 @@ public class ArtistListAdapter extends ArrayAdapter<MyArtist> {
         ImageView ivArtist = (ImageView) rowView.findViewById(R.id.iv_artist);
         try {
 
-            //List<Image> images = artist.get;
-
             // Always get the last image, which should be the 64 px size, but may not be included.
             Picasso.with(mContext).load(artist.getImageUrl())
                     .placeholder(R.drawable.ic_placeholder)
                     .into(ivArtist);
-//            Picasso.with(mContext).load(images.get(images.size()-1).url)
-//                    .placeholder(R.drawable.ic_placeholder)
-//                    .into(ivArtist);
         } catch (Exception e) {
             e.printStackTrace();
         }

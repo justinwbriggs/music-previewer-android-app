@@ -13,7 +13,6 @@ import net.justinbriggs.android.musicpreviewer.app.fragment.ArtistListFragment;
 import net.justinbriggs.android.musicpreviewer.app.fragment.PlayerDialogFragment;
 import net.justinbriggs.android.musicpreviewer.app.fragment.TrackListFragment;
 import net.justinbriggs.android.musicpreviewer.app.model.MyArtist;
-import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
 public class MainActivity extends AppCompatActivity
         implements ArtistListFragment.Listener,
@@ -24,17 +23,14 @@ public class MainActivity extends AppCompatActivity
     private boolean mTwoPane;
     private boolean mIsLargeLayout;
 
-    private Menu mMenu;
-
 
     // TODO: go through all the courses and add comments
-    // TODO: Configure all actionbars correctly.
     // See if you can take advantage of the manifest
     // Here's a way this might be accomplished: http://stackoverflow.com/questions/23811136
 
     // TODO: Need to record the selected position of the list views
     // TODO: Create an app icon, and a placeholder icon for list items
-
+    // TODO: There is a bug advancing tracks
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,17 +130,8 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
+
         getMenuInflater().inflate(R.menu.main, menu);
-        mMenu = menu;
-
-        // I put this in several places because of poor planning and worse execution.
-        if(SongService.sIsInitialized) {
-            if(mMenu != null) {
-                mMenu.findItem(R.id.action_now_playing).setVisible(true);
-            }
-        }
-
         return true;
     }
 
@@ -162,7 +149,6 @@ public class MainActivity extends AppCompatActivity
         if (id == android.R.id.home) {
             FragmentManager fm = getSupportFragmentManager();
             fm.popBackStackImmediate();
-
         }
 
         if (id == R.id.action_now_playing) {

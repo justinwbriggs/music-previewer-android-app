@@ -36,12 +36,11 @@ import kaaes.spotify.webapi.android.models.ArtistsPager;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Pager;
 
-//TODO: Highlight selected list item.
-
 public class ArtistListFragment extends Fragment {
 
     public static final String FRAGMENT_TAG = TrackListFragment.class.getSimpleName();
     public static final String LIST_KEY = "list_key";
+    public static final String POSITION_KEY = "position_key";
 
     public interface Listener {
         void onArtistSelected(MyArtist artist);
@@ -52,6 +51,7 @@ public class ArtistListFragment extends Fragment {
     private ArtistListAdapter mArtistListAdapter;
     private ListView mListView;
     private EditText mEdtSearch;
+    private int mPosition;
 
     public static ArtistListFragment newInstance() {
         ArtistListFragment f = new ArtistListFragment();
@@ -59,15 +59,29 @@ public class ArtistListFragment extends Fragment {
     }
 
     @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // After re-orientation, set the last position
+        mListView.setSelection(mPosition);
+        //TODO: Can't figure out how to highlight the last selected item on rotation
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         setHasOptionsMenu(true);
-
         View rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
-
         if(savedInstanceState != null && savedInstanceState.containsKey(LIST_KEY)) {
             mArtists = savedInstanceState.getParcelableArrayList(LIST_KEY);
+        }
+        if(savedInstanceState != null && savedInstanceState.containsKey(POSITION_KEY)) {
+            mPosition = savedInstanceState.getInt(POSITION_KEY);
         }
 
         mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtists);
@@ -105,6 +119,7 @@ public class ArtistListFragment extends Fragment {
                 MyArtist artist = mArtistListAdapter.getItem(position);
                 mListener.onArtistSelected(artist);
                 view.setSelected(true);
+                mPosition = position;
 
             }
         });
@@ -201,9 +216,11 @@ public class ArtistListFragment extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList(LIST_KEY, mArtists);
+        outState.putInt(POSITION_KEY, mPosition);
 
     }
 
+    // This gets called when the activity is resumed because we set hasOptionsMenu(true)
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -220,7 +237,8 @@ public class ArtistListFragment extends Fragment {
                 }
             }
         }
-
     }
+
+
 
 }

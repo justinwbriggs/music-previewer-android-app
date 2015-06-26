@@ -3,4 +3,5 @@
     <item name="bg_app" type="color">#fff</item>
     <item name="bg_player_dialog" type="color">#ffffff</item>
     <item name="bg_list_selected" type="color">#cccccc</item>
+    <item name="bg_pane_divider" type="color">#cccccc</item>
 </resources>
