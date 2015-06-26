@@ -113,22 +113,8 @@ public class TrackListFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Get the saved db results
-        Cursor cursor = getActivity().getContentResolver().query(
-                MusicContract.TrackEntry.CONTENT_URI,
-                null, // leaving "columns" null just returns all the columns.
-                null, // cols for "where" clause
-                null, // values for "where" clause
-                null // Sort order
-        );
-
         //TODO: I wanted to cache these results so the AsyncTask did not have to run again, but
-        // it was giving me a bunch of issues.
-        //        if(cursor.getCount() != 0) {
-        //            mTrackListAdapter.swapCursor(cursor);
-        //        } else {
-        //            fetchTracks(mArtistId);
-        //        }
+        // it was giving me issues, so I just fetch again.
         fetchTracks(mArtistId);
 
     }
@@ -179,7 +165,15 @@ public class TrackListFragment extends Fragment {
                     trackValues.put(MusicContract.TrackEntry.COLUMN_ALBUM_IMAGE_URL, track.album.images.get(0).url);
                     trackValues.put(MusicContract.TrackEntry.COLUMN_PREVIEW_URL,track.preview_url);
                     contentValues[i] = trackValues;
+
                 }
+
+                //TODO: So here is where I'm getting screwed up. Every time I click on an artist and
+                // the track list reloads, I'm saving it in the db
+
+
+
+
 
                 // Add the tracks to the db
                 getActivity().getContentResolver()

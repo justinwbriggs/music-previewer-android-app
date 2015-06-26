@@ -53,6 +53,7 @@ public class ArtistListFragment extends Fragment {
     private EditText mEdtSearch;
     private int mPosition;
 
+
     public static ArtistListFragment newInstance() {
         ArtistListFragment f = new ArtistListFragment();
         return f;
@@ -80,9 +81,7 @@ public class ArtistListFragment extends Fragment {
         if(savedInstanceState != null && savedInstanceState.containsKey(LIST_KEY)) {
             mArtists = savedInstanceState.getParcelableArrayList(LIST_KEY);
         }
-        if(savedInstanceState != null && savedInstanceState.containsKey(POSITION_KEY)) {
-            mPosition = savedInstanceState.getInt(POSITION_KEY);
-        }
+
 
         mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtists);
 
@@ -119,6 +118,7 @@ public class ArtistListFragment extends Fragment {
                 MyArtist artist = mArtistListAdapter.getItem(position);
                 mListener.onArtistSelected(artist);
                 view.setSelected(true);
+                // This records the artist list position.
                 mPosition = position;
 
             }
@@ -217,7 +217,6 @@ public class ArtistListFragment extends Fragment {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList(LIST_KEY, mArtists);
         outState.putInt(POSITION_KEY, mPosition);
-
     }
 
     // This gets called when the activity is resumed because we set hasOptionsMenu(true)

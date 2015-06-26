@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
 
@@ -57,6 +58,7 @@ public class SongService extends Service {
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
 
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -104,6 +106,11 @@ public class SongService extends Service {
             if (intent.getAction().equals(ACTION_INITIALIZE_SERVICE)) {
                 sIsInitialized = true;
 
+                //TODO: So here, if coming from an actionbar button, we'll want to use our currentPlaying
+                // cursor instead of the one from the db. So how do we know if it's coming from the actionbar?
+                // But it's only queried one time,
+
+                Log.v("qwer", "Setting new cursors results");
                 // Get the tracks from the db
                 mCursor = getApplicationContext().getContentResolver().query(
                         MusicContract.TrackEntry.CONTENT_URI,

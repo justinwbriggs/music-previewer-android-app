@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
+import net.justinbriggs.android.musicpreviewer.app.Utils;
 import net.justinbriggs.android.musicpreviewer.app.fragment.ArtistListFragment;
 import net.justinbriggs.android.musicpreviewer.app.fragment.PlayerDialogFragment;
 import net.justinbriggs.android.musicpreviewer.app.fragment.TrackListFragment;
@@ -91,25 +92,16 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    private void loadFragment(Fragment fragment, String tag) {
-
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-
-        ft.addToBackStack(tag);
-        // Use add instead of replace in order to maintain the fragment view.
-        ft.add(R.id.content_frame, fragment, tag);
-        ft.commit();
-    }
-
     @Override
     public void onTrackSelected(int position) {
+
+        Utils.setCurrentTrackPositionPref(getApplicationContext(), position);
 
         FragmentManager fm = getSupportFragmentManager();
 
         // Depending on the device size, dialog will either be fullscreen or floating.
         PlayerDialogFragment playerDialogFragment
-                = PlayerDialogFragment.newInstance(position);
+                = PlayerDialogFragment.newInstance(position, false);
 
         if (mIsLargeLayout) {
             // The device is using a large layout, so show the fragment as a dialog
@@ -124,6 +116,17 @@ public class MainActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
+    }
+
+    private void loadFragment(Fragment fragment, String tag) {
+
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+
+        ft.addToBackStack(tag);
+        // Use add instead of replace in order to maintain the fragment view.
+        ft.add(R.id.content_frame, fragment, tag);
+        ft.commit();
     }
 
     @Override
@@ -143,7 +146,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (id == R.id.action_now_playing) {
-            PlayerDialogFragment playerDialogFragment = new PlayerDialogFragment();
+            PlayerDialogFragment playerDialogFragment = PlayerDialogFragment.newInstance(0, true);
             if (mIsLargeLayout) {
                 playerDialogFragment.show(getSupportFragmentManager(), PlayerDialogFragment.FRAGMENT_TAG);
             } else {

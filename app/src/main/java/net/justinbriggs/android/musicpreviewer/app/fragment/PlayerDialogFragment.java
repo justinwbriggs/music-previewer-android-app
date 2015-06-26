@@ -13,6 +13,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,6 +28,7 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
+import net.justinbriggs.android.musicpreviewer.app.Utils;
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
 import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
@@ -38,7 +40,7 @@ public class PlayerDialogFragment extends DialogFragment {
 
     boolean mHasRun;
     boolean mFromActionBar;
-    int mPosition;
+
 
     // I had to create this class variable because getActivity.getContentResolver() returns null
     // when navigating back from the dialog to this fragment, then clicking another track. Not sure why.
@@ -58,11 +60,14 @@ public class PlayerDialogFragment extends DialogFragment {
     private ImageView mIvAlbum;
     private TextView mTxtTrack;
 
-    public static PlayerDialogFragment newInstance(int position) {
+    private Context mContext;
+
+    public static PlayerDialogFragment newInstance(int position, boolean fromActionBar) {
 
         PlayerDialogFragment f = new PlayerDialogFragment();
         Bundle args = new Bundle();
         args.putInt(SongService.POSITION_KEY, position);
+        args.putBoolean("test", fromActionBar);
         f.setArguments(args);
 
         return f;
@@ -73,24 +78,43 @@ public class PlayerDialogFragment extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+        mContext = getActivity();
         mContentResolver = getActivity().getContentResolver();
 
         // Tells the host activity that the fragment has menu options it wants to manipulate.
         setHasOptionsMenu(true);
         setRetainInstance(true);
 
+        // If created from the actionbar button, we need to load the currently playing track.
+        // So we need to save a reference to it, as a cursor? The position is going to remain the same,
+        // only the tracks change. But we can't save it here, since it is destroyed.
+        // But the SongService does hold a reference to the cursor. So DONT update the SongService
+        // cursor unless a new track is selected
+        if(getArguments() != null && getArguments().containsKey("test")) {
+            mFromActionBar = getArguments().getBoolean("test");
+        } else {
+            mFromActionBar = false;
+        }
+
+
+
+        //Log.v("asdf", "fromActionBar");
+        //mFromActionBar = false;
+
         // The position can either be defined from the bundle sent from TrackListFragment, or
         // from being saved on rotation.
-        if(savedInstanceState != null && savedInstanceState.containsKey(SongService.POSITION_KEY)) {
-            mPosition = savedInstanceState.getInt(SongService.POSITION_KEY);
-        } else if(getArguments() != null && getArguments().containsKey(SongService.POSITION_KEY)) {
-            mPosition = getArguments().getInt(SongService.POSITION_KEY);
-        } else {
-            // This implies that the DialogFragment is being created from the Now Playing button.
-            mFromActionBar = true;
-            // Get mPosition from the running service in order to update the ui correctly.
-            sendMediaControlAction(SongService.ACTION_GET_POSITION);
-        }
+//        if(savedInstanceState != null && savedInstanceState.containsKey(SongService.POSITION_KEY)) {
+//            mPosition = savedInstanceState.getInt(SongService.POSITION_KEY);
+//        } else if(getArguments() != null && getArguments().containsKey(SongService.POSITION_KEY)) {
+//            mPosition = getArguments().getInt(SongService.POSITION_KEY);
+//        } else {
+//            // This implies that the DialogFragment is being created from the Now Playing button.
+//            mFromActionBar = true;
+//            // Get mPosition from the running service in order to update the ui correctly.
+//            sendMediaControlAction(SongService.ACTION_GET_POSITION);
+//        }
+
+
 
         View rootView = inflater.inflate(R.layout.dialog_fragment_player, container, false);
 
@@ -148,7 +172,7 @@ public class PlayerDialogFragment extends DialogFragment {
                 // Initialize service when dialog is created, and send the trackUrl list in a bundle.
                 Intent intent = new Intent(getActivity(), SongService.class);
                 intent.setAction(SongService.ACTION_INITIALIZE_SERVICE);
-                intent.putExtra(SongService.POSITION_KEY, mPosition);
+                intent.putExtra(SongService.POSITION_KEY, Utils.getCurrentTrackPositionPref(getActivity()));
                 getActivity().startService(intent);
                 mHasRun = true;
             }
@@ -188,6 +212,11 @@ public class PlayerDialogFragment extends DialogFragment {
 
     private void updateUi() {
 
+        //TODO: Here we're running into another sync issue. There needs to be two cursors, one for
+        // the currently playing tracks that the SongService used to play in the background. The
+        // second is the cursor for the track list UI, which can change (without changing the SongService cursor)
+        // So how do we keep track of both?
+
         Cursor cursor = mContentResolver.query(
                 MusicContract.TrackEntry.CONTENT_URI,
                 null, // leaving "columns" null just returns all the columns.
@@ -195,7 +224,8 @@ public class PlayerDialogFragment extends DialogFragment {
                 null, // values for "where" clause
                 null // Sort order
         );
-        cursor.moveToPosition(mPosition);
+
+        cursor.moveToPosition(Utils.getCurrentTrackPositionPref(mContext));
 
         // Set the seekBar
         // All previews are 30 seconds, but the api returns the total track length for some reason.
@@ -227,6 +257,8 @@ public class PlayerDialogFragment extends DialogFragment {
 
 
         //TODO: when you click a new artist while an artist is playing, then click now playing, crash
+        // This is because when you click a new artist, the track list changes
+
         mTxtArtist.setText(cursor.getString(2));
         mTxtAlbum.setText(cursor.getString(1));
         try {
@@ -305,7 +337,9 @@ public class PlayerDialogFragment extends DialogFragment {
             } else if(intent.getAction().equals(SongService.BROADCAST_PAUSE)) {
                 mIbPausePlay.setImageResource(android.R.drawable.ic_media_play);
             } else if(intent.getAction().equals(SongService.BROADCAST_TRACK_CHANGED)) {
-                mPosition = intent.getIntExtra(SongService.POSITION_KEY, 0);
+                //mPosition = intent.getIntExtra(SongService.POSITION_KEY, 0);
+                Utils.setCurrentTrackPositionPref(context,
+                        intent.getIntExtra(SongService.POSITION_KEY, 0) );
                 updateUi();
             } else if(intent.getAction().equals(SongService.BROADCAST_TRACK_PROGRESS)) {
                 // Update the seekBar in real time, only if user isn't currently touching seekBar
@@ -314,7 +348,9 @@ public class PlayerDialogFragment extends DialogFragment {
                     mSeekBar.setProgress(progress);
                 }
             } else if (intent.getAction().equals(SongService.BROADCAST_POSITION)) {
-                mPosition = intent.getIntExtra(SongService.POSITION_KEY, 0);
+                //mPosition = intent.getIntExtra(SongService.POSITION_KEY, 0);
+                Utils.setCurrentTrackPositionPref(getActivity(),
+                        intent.getIntExtra(SongService.POSITION_KEY, 0) );
                 updateUi();
             }
         }
@@ -329,11 +365,6 @@ public class PlayerDialogFragment extends DialogFragment {
     }
 
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt(SongService.POSITION_KEY, mPosition);
-    }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
