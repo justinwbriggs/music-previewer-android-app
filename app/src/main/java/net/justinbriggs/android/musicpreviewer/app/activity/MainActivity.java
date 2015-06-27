@@ -19,21 +19,26 @@ public class MainActivity extends AppCompatActivity
         implements ArtistListFragment.Listener,
         TrackListFragment.Listener {
 
-
     //TODO: Figure out if we need these two.
     private boolean mTwoPane;
     private boolean mIsLargeLayout;
 
+
     // TODO: go through all the courses and add comments
     // See if you can take advantage of the manifest
     // Here's a way this might be accomplished: http://stackoverflow.com/questions/23811136
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
+
+
+                mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
 
         if (findViewById(R.id.track_list_container) != null) {
 

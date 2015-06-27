@@ -2,18 +2,20 @@ package net.justinbriggs.android.musicpreviewer.app.fragment;
 
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,18 +30,24 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
-import net.justinbriggs.android.musicpreviewer.app.Utils;
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
 import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
 public class PlayerDialogFragment extends DialogFragment {
 
+    public static final String POSITION_KEY = "position_key";
+    public static final String FROM_ACTION_BAR_KEY = "from_action_bar_key";
+
+    private SongService mBoundService;
+    boolean mIsBound;
 
     public static final String FRAGMENT_TAG = PlayerDialogFragment.class.getSimpleName();
     private static final int PREVIEW_DURATION = 30000;
 
-    boolean mHasRun;
-    boolean mFromActionBar;
+    private boolean mHasRun;
+    private boolean mFromActionBar;
+
+    private int mPosition;
 
 
     // I had to create this class variable because getActivity.getContentResolver() returns null
@@ -60,61 +68,111 @@ public class PlayerDialogFragment extends DialogFragment {
     private ImageView mIvAlbum;
     private TextView mTxtTrack;
 
-    private Context mContext;
+    private Cursor mCursor;
 
     public static PlayerDialogFragment newInstance(int position, boolean fromActionBar) {
 
         PlayerDialogFragment f = new PlayerDialogFragment();
         Bundle args = new Bundle();
         args.putInt(SongService.POSITION_KEY, position);
-        args.putBoolean("test", fromActionBar);
+        args.putBoolean(FROM_ACTION_BAR_KEY, fromActionBar);
         f.setArguments(args);
 
         return f;
     }
 
 
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            // This is called when the connection with the service has been
+            // established, giving us the service object we can use to
+            // interact with the service.  Because we have bound to a explicit
+            // service that we know is running in our own process, we can
+            // cast its IBinder to a concrete class and directly access it.
+            mBoundService = ((SongService.LocalBinder)service).getService();
+
+            // We only want to initialize one time on startup. Prevents orientation change from firing.
+            if(!mHasRun) {
+
+                // We also don't want to re-initialize if the user resumes from action bar button.
+                if(!mFromActionBar) {
+                    disableButtons();
+                    // Initialize service when dialog is created, and send the trackUrl list in a bundle.
+                    Intent intent = new Intent(getActivity(), SongService.class);
+                    intent.setAction(SongService.ACTION_INITIALIZE_SERVICE);
+                    getActivity().startService(intent);
+                    mHasRun = true;
+                }
+            }
+
+            if(mFromActionBar) {
+                // If dialog created from the Now Playing button, use it's cursor.
+                mCursor = mBoundService.getCurrentCursor();
+
+            } else {
+                // Otherwise, we're coming from the TrackListFragment. Use the db cursor.
+                mCursor = mContentResolver.query(
+                        MusicContract.TrackEntry.CONTENT_URI,
+                        null, // leaving "columns" null just returns all the columns.
+                        null, // cols for "where" clause
+                        null, // values for "where" clause
+                        null // Sort order
+                );
+                mCursor.moveToPosition(mPosition);
+            }
+
+            updateUi();
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected -- that is, its process crashed.
+            // Because it is running in our same process, we should never
+            // see this happen.
+            mBoundService = null;
+        }
+    };
+
+    void bindService() {
+        // Establish a connection with the service.  We use an explicit
+        // class name because we want a specific service implementation that
+        // we know will be running in our own process (and thus won't be
+        // supporting component replacement by other applications).
+        getActivity().bindService(new Intent(getActivity(),
+                SongService.class), mConnection, Context.BIND_AUTO_CREATE);
+        mIsBound = true;
+    }
+
+    void unbindService() {
+        if (mIsBound) {
+            // Detach our existing connection.
+            getActivity().unbindService(mConnection);
+            mIsBound = false;
+        }
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        mContext = getActivity();
+        // We should only doBind when we want to
+        bindService();
+
         mContentResolver = getActivity().getContentResolver();
 
         // Tells the host activity that the fragment has menu options it wants to manipulate.
         setHasOptionsMenu(true);
         setRetainInstance(true);
 
-        // If created from the actionbar button, we need to load the currently playing track.
-        // So we need to save a reference to it, as a cursor? The position is going to remain the same,
-        // only the tracks change. But we can't save it here, since it is destroyed.
-        // But the SongService does hold a reference to the cursor. So DONT update the SongService
-        // cursor unless a new track is selected
-        if(getArguments() != null && getArguments().containsKey("test")) {
-            mFromActionBar = getArguments().getBoolean("test");
-        } else {
-            mFromActionBar = false;
+        if(getArguments() != null && getArguments().containsKey(FROM_ACTION_BAR_KEY)) {
+            mFromActionBar = getArguments().getBoolean(FROM_ACTION_BAR_KEY);
         }
-
-
-
-        //Log.v("asdf", "fromActionBar");
-        //mFromActionBar = false;
-
-        // The position can either be defined from the bundle sent from TrackListFragment, or
-        // from being saved on rotation.
-//        if(savedInstanceState != null && savedInstanceState.containsKey(SongService.POSITION_KEY)) {
-//            mPosition = savedInstanceState.getInt(SongService.POSITION_KEY);
-//        } else if(getArguments() != null && getArguments().containsKey(SongService.POSITION_KEY)) {
-//            mPosition = getArguments().getInt(SongService.POSITION_KEY);
-//        } else {
-//            // This implies that the DialogFragment is being created from the Now Playing button.
-//            mFromActionBar = true;
-//            // Get mPosition from the running service in order to update the ui correctly.
-//            sendMediaControlAction(SongService.ACTION_GET_POSITION);
-//        }
-
-
+        if(getArguments() != null && getArguments().containsKey(POSITION_KEY)) {
+            mPosition = getArguments().getInt(POSITION_KEY,0);
+        }
+        if(savedInstanceState != null && savedInstanceState.containsKey(POSITION_KEY)) {
+            mPosition = savedInstanceState.getInt(POSITION_KEY);
+        }
 
         View rootView = inflater.inflate(R.layout.dialog_fragment_player, container, false);
 
@@ -149,6 +207,34 @@ public class PlayerDialogFragment extends DialogFragment {
             }
         });
 
+        // Set the seekBar
+        // All previews are 30 seconds, but the api returns the total track length for some reason.
+        mSeekBar.setMax(PREVIEW_DURATION);
+
+        // This is for updating the current track when the user drags the seekBar
+        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {}
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                mIsSeeking = true;
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+                // Update the progress of the current track.
+                int progress = mSeekBar.getProgress();
+                Intent intent = new Intent(getActivity(), SongService.class);
+                intent.setAction(SongService.ACTION_UPDATE_PROGRESS);
+                intent.putExtra(SongService.PROGRESS_KEY, progress);
+                getActivity().startService(intent);
+
+                mIsSeeking = false;
+            }
+        });
+
         return rootView;
     }
 
@@ -163,21 +249,7 @@ public class PlayerDialogFragment extends DialogFragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // We only want to initialize one time on startup. Prevents orientation change from firing.
-        if(!mHasRun) {
 
-            // We also don't want to re-initialize if the user resumes from action bar button.
-            if(!mFromActionBar) {
-                disableButtons();
-                // Initialize service when dialog is created, and send the trackUrl list in a bundle.
-                Intent intent = new Intent(getActivity(), SongService.class);
-                intent.setAction(SongService.ACTION_INITIALIZE_SERVICE);
-                intent.putExtra(SongService.POSITION_KEY, Utils.getCurrentTrackPositionPref(getActivity()));
-                getActivity().startService(intent);
-                mHasRun = true;
-            }
-        }
-        updateUi();
     }
 
     private void disableButtons() {
@@ -212,69 +284,20 @@ public class PlayerDialogFragment extends DialogFragment {
 
     private void updateUi() {
 
-        //TODO: Here we're running into another sync issue. There needs to be two cursors, one for
-        // the currently playing tracks that the SongService used to play in the background. The
-        // second is the cursor for the track list UI, which can change (without changing the SongService cursor)
-        // So how do we keep track of both?
-
-        Cursor cursor = mContentResolver.query(
-                MusicContract.TrackEntry.CONTENT_URI,
-                null, // leaving "columns" null just returns all the columns.
-                null, // cols for "where" clause
-                null, // values for "where" clause
-                null // Sort order
-        );
-
-        cursor.moveToPosition(Utils.getCurrentTrackPositionPref(mContext));
-
-        // Set the seekBar
-        // All previews are 30 seconds, but the api returns the total track length for some reason.
-        mSeekBar.setMax(PREVIEW_DURATION);
-
-        // This is for updating the current track when the user drags the seekBar
-        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {}
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                mIsSeeking = true;
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-                // Update the progress of the current track.
-                int progress = mSeekBar.getProgress();
-                Intent intent = new Intent(getActivity(), SongService.class);
-                intent.setAction(SongService.ACTION_UPDATE_PROGRESS);
-                intent.putExtra(SongService.PROGRESS_KEY, progress);
-                getActivity().startService(intent);
-
-                mIsSeeking = false;
-            }
-        });
-
-
-        //TODO: when you click a new artist while an artist is playing, then click now playing, crash
-        // This is because when you click a new artist, the track list changes
-
-        mTxtArtist.setText(cursor.getString(2));
-        mTxtAlbum.setText(cursor.getString(1));
+        mTxtArtist.setText(mCursor.getString(2));
+        mTxtAlbum.setText(mCursor.getString(1));
         try {
 
             // 0 should be the largest image
             //TODO: Make sure you record the thumbnail and the large image in the db
-            String imageUrl = cursor.getString(4);
+            String imageUrl = mCursor.getString(4);
             Picasso.with(getActivity()).load(imageUrl)
                     .placeholder(R.drawable.ic_placeholder)
                     .into(mIvAlbum);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        mTxtTrack.setText(cursor.getString(3));
-        cursor.close();
-
+        mTxtTrack.setText(mCursor.getString(3));
     }
 
 
@@ -316,7 +339,6 @@ public class PlayerDialogFragment extends DialogFragment {
         intentFilter.addAction(SongService.BROADCAST_PAUSE);
         intentFilter.addAction(SongService.BROADCAST_TRACK_PROGRESS);
         intentFilter.addAction(SongService.BROADCAST_TRACK_CHANGED);
-        intentFilter.addAction(SongService.BROADCAST_POSITION);
 
         // Use LocalBroadcastManager unless you plan on receiving broadcasts from other apps.
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mReceiver, intentFilter);
@@ -337,9 +359,9 @@ public class PlayerDialogFragment extends DialogFragment {
             } else if(intent.getAction().equals(SongService.BROADCAST_PAUSE)) {
                 mIbPausePlay.setImageResource(android.R.drawable.ic_media_play);
             } else if(intent.getAction().equals(SongService.BROADCAST_TRACK_CHANGED)) {
-                //mPosition = intent.getIntExtra(SongService.POSITION_KEY, 0);
-                Utils.setCurrentTrackPositionPref(context,
-                        intent.getIntExtra(SongService.POSITION_KEY, 0) );
+                mCursor = mBoundService.getCurrentCursor();
+                // Record the position for orientation changes.
+                mPosition = mCursor.getPosition();
                 updateUi();
             } else if(intent.getAction().equals(SongService.BROADCAST_TRACK_PROGRESS)) {
                 // Update the seekBar in real time, only if user isn't currently touching seekBar
@@ -347,11 +369,6 @@ public class PlayerDialogFragment extends DialogFragment {
                     int progress = intent.getIntExtra(SongService.BROADCAST_TRACK_PROGRESS_KEY, 0);
                     mSeekBar.setProgress(progress);
                 }
-            } else if (intent.getAction().equals(SongService.BROADCAST_POSITION)) {
-                //mPosition = intent.getIntExtra(SongService.POSITION_KEY, 0);
-                Utils.setCurrentTrackPositionPref(getActivity(),
-                        intent.getIntExtra(SongService.POSITION_KEY, 0) );
-                updateUi();
             }
         }
     }
@@ -361,10 +378,16 @@ public class PlayerDialogFragment extends DialogFragment {
         // Used to fix the disappearing dialog after rotation on tablets
         if (getDialog() != null && getRetainInstance())
             getDialog().setOnDismissListener(null);
+        unbindService();
         super.onDestroyView();
     }
 
-
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        //TODO: Going to have to close this?
+        //mCursor.close();
+    }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -383,4 +406,9 @@ public class PlayerDialogFragment extends DialogFragment {
         }
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(POSITION_KEY, mPosition);
+    }
 }

@@ -168,12 +168,12 @@ public class TrackListFragment extends Fragment {
 
                 }
 
+
+
                 //TODO: So here is where I'm getting screwed up. Every time I click on an artist and
                 // the track list reloads, I'm saving it in the db
 
-
-
-
+                // TODO: Check to see if these results are the same as the
 
                 // Add the tracks to the db
                 getActivity().getContentResolver()

@@ -5,8 +5,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract.TrackEntry;
-
-
 /**
  * Manages a local database of music
  */

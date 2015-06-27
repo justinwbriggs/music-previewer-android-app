@@ -5,12 +5,14 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import net.justinbriggs.android.musicpreviewer.app.Utils;
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
 
 import java.io.IOException;
@@ -21,6 +23,11 @@ import java.io.IOException;
  */
 
 public class SongService extends Service {
+
+
+    // This is the object that receives interactions from clients.  See
+    // RemoteService for a more complete example.
+    private final IBinder mBinder = new LocalBinder();
 
     // TODO: Not sure if this is the best method for other components to determine the state,
     // but I didn't want to have a custom action.
@@ -37,7 +44,7 @@ public class SongService extends Service {
     public static final String ACTION_NEXT = "action_next";
     public static final String ACTION_PREVIOUS = "action_prevous";
     public static final String ACTION_UPDATE_PROGRESS = "action_update_progress";
-    public static final String ACTION_GET_POSITION = "action_get_position";
+
 
     // Intent key for notifying of the current tracks progress.
     public static final String BROADCAST_TRACK_PROGRESS_KEY = "broadcast_track_progress_key";
@@ -47,7 +54,7 @@ public class SongService extends Service {
     public static final String BROADCAST_NOT_READY = "broadcast_not_ready";
     public static final String BROADCAST_PLAY = "broadcast_play";
     public static final String BROADCAST_PAUSE = "broadcast_pause";
-    public static final String BROADCAST_POSITION = "broadcast_position";
+    //public static final String BROADCAST_POSITION = "broadcast_position";
 
     // Notify the UI that it needs to update.
     public static final String BROADCAST_TRACK_CHANGED = "broadcast_track_changed";
@@ -58,6 +65,27 @@ public class SongService extends Service {
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
 
+    /**
+     * Class for clients to access.  Because we know this service always
+     * runs in the same process as its clients, we don't need to deal with
+     * IPC.
+     */
+    public class LocalBinder extends Binder {
+        public SongService getService() {
+            return SongService.this;
+        }
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return mBinder;
+    }
+
+
+    public Cursor getCurrentCursor() {
+        return mCursor;
+    }
 
     @Override
     public void onCreate() {
@@ -104,24 +132,7 @@ public class SongService extends Service {
 
             //Load up the trackUrls from the db when the service is started.
             if (intent.getAction().equals(ACTION_INITIALIZE_SERVICE)) {
-                sIsInitialized = true;
-
-                //TODO: So here, if coming from an actionbar button, we'll want to use our currentPlaying
-                // cursor instead of the one from the db. So how do we know if it's coming from the actionbar?
-                // But it's only queried one time,
-
-                Log.v("qwer", "Setting new cursors results");
-                // Get the tracks from the db
-                mCursor = getApplicationContext().getContentResolver().query(
-                        MusicContract.TrackEntry.CONTENT_URI,
-                        null, // leaving "columns" null just returns all the columns.
-                        null, // cols for "where" clause
-                        null, // values for "where" clause
-                        null // Sort order
-                );
-
-                mCursor.moveToPosition(intent.getIntExtra(POSITION_KEY,0));
-                setPlayerDataSource();
+               init();
             } else if (intent.getAction().equals(ACTION_PLAY_PAUSE)) {
                playPause();
             } else if (intent.getAction().equals(ACTION_PREVIOUS)) {
@@ -132,12 +143,27 @@ public class SongService extends Service {
                 // Jump to the requested duration.
                 int progress = intent.getIntExtra(PROGRESS_KEY,0);
                 updateProgress(progress);
-            } else if(intent.getAction().equals(ACTION_GET_POSITION)) {
-                sendPlayerBroadcast(BROADCAST_POSITION);
             }
 
         }
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void init() {
+
+        sIsInitialized = true;
+
+        // Get the tracks from the db
+        mCursor = getApplicationContext().getContentResolver().query(
+                MusicContract.TrackEntry.CONTENT_URI,
+                null, // leaving "columns" null just returns all the columns.
+                null, // cols for "where" clause
+                null, // values for "where" clause
+                null // Sort order
+        );
+
+        mCursor.moveToPosition(Utils.getCurrentTrackPositionPref(getApplicationContext()));
+        setPlayerDataSource();
     }
 
     // Send broadcasts related to player state and track list state.
@@ -145,7 +171,6 @@ public class SongService extends Service {
         Intent i = new Intent();
         i.setAction(action);
         // Send the cursor position
-        i.putExtra(POSITION_KEY, mCursor.getPosition());
         // Use LocalBroadcastManager, more secure when you don't have to share info across apps.
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
     }
@@ -158,12 +183,6 @@ public class SongService extends Service {
         i.putExtra(BROADCAST_TRACK_PROGRESS_KEY, progress);
         // Use LocalBroadcastManager, more secure when you don't have to share info.
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
-    }
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
     }
 
     private void setPlayerDataSource() {
@@ -189,58 +208,6 @@ public class SongService extends Service {
         // Notify the UI that the track has changed.
         sendPlayerBroadcast(BROADCAST_TRACK_CHANGED);
 
-//
-//        NotificationCompat.Builder mBuilder =
-//                new NotificationCompat.Builder(this)
-//                        .setSmallIcon(R.drawable.ic_notification_play)
-//                        .setContentTitle("My notification")
-//                        .setContentText("Hello World!");
-//
-//        // Creates an explicit intent for an Activity in your app
-//        Intent resultIntent = new Intent(this, PlayerActivity.class);
-//
-//        // The stack builder object will contain an artificial back stack for the
-//        // started Activity.
-//        // This ensures that navigating backward from the Activity leads out of
-//        // your application to the Home screen.
-//        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-//        // Adds the back stack for the Intent (but not the Intent itself)
-//        //stackBuilder.addParentStack(PlayerActivity.class);
-//        // Adds the Intent that starts the Activity to the top of the stack
-//        stackBuilder.addNextIntent(resultIntent);
-//        PendingIntent resultPendingIntent =
-//                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_CANCEL_CURRENT);
-//        mBuilder.setContentIntent(resultPendingIntent);
-//        NotificationManager mNotificationManager =
-//                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-//
-//        // first parameter allows you to update the notification later on.
-//        mNotificationManager.notify(93487, mBuilder.build());
-
-
-/*
-        Intent notifyIntent = new Intent(getApplicationContext(), PlayerActivity.class);
-        notifyIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0,
-                notifyIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-
-
-        Notification notification = new Notification();
-
-        // For accessibility
-        //notification.tickerText = "Playing: " + songName;
-        notification.icon = R.drawable.ic_notification_play;
-        notification.flags |= Notification.FLAG_ONGOING_EVENT;
-
-        notification.setLatestEventInfo(getApplicationContext(), getString(R.string.app_name),
-                "Currently Playing ", pi);
-
-        // TODO: ToReview - figure out what first parameter means.
-        startForeground(9376, notification);
-        */
-
     }
 
     public void playPause() {
@@ -256,20 +223,21 @@ public class SongService extends Service {
     public void playNextTrack() {
         // Go to the first track position if you are on the last.
         if(!mCursor.moveToNext()) {
+            Log.v("qwer", "MovingToPosition0");
             mCursor.moveToPosition(0);
+            Utils.setCurrentTrackPositionPref(getApplicationContext(), mCursor.getPosition());
         }
         setPlayerDataSource();
     }
 
     public void playPreviousTrack() {
-
         // Go to the last track position if you are on the first.
         if(!mCursor.moveToPrevious()) {
             mCursor.moveToPosition(mCursor.getCount() - 1);
+            Utils.setCurrentTrackPositionPref(getApplicationContext(), mCursor.getPosition());
         }
         setPlayerDataSource();
     }
-
     public void updateProgress(int progress) {
         mPlayer.seekTo(progress);
     }
