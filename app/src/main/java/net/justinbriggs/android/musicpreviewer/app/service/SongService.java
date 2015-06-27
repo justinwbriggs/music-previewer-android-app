@@ -23,9 +23,8 @@ import java.io.IOException;
 
 public class SongService extends Service {
 
-
-    // This is the object that receives interactions from clients.  See
-    // RemoteService for a more complete example.
+    // This is the object that receives interactions from clients.
+    // See RemoteService for a more complete example.
     private final IBinder mBinder = new LocalBinder();
 
     // TODO: Not sure if this is the best method for other components to determine player state
@@ -40,15 +39,14 @@ public class SongService extends Service {
 
     public static final String BROADCAST_READY = "broadcast_ready";
     public static final String BROADCAST_NOT_READY = "broadcast_not_ready";
-    public static final String BROADCAST_PLAY = "broadcast_play";
-    public static final String BROADCAST_PAUSE = "broadcast_pause";
+    public static final String BROADCAST_PLAY_PAUSE = "broadcast_play_pause";
 
-    // Notify the UI that it needs to update.
+    // Notify the UI that it needs to update because of track change.
     public static final String BROADCAST_TRACK_CHANGED = "broadcast_track_changed";
 
-    // Once this is set, components can request it through getCurrentCursor(). The TrackDialogFragment
+    // Once this is set, components can request it through getCurrentCursor(). The PlayerDialogFragment
     // will use it to update the UI when the Now Playing button is pressed, but will use a different
-    // cursor from the db to maintain and manipulate the list of tracks.
+    // cursor from the db to maintain the UI relative to the track being played.
     Cursor mCursor;
 
     private MediaPlayer mPlayer;
@@ -71,7 +69,6 @@ public class SongService extends Service {
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
-
 
     public Cursor getCurrentCursor() {
         return mCursor;
@@ -99,12 +96,11 @@ public class SongService extends Service {
                 playNextTrack();
             }
         });
-
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        // Send a broadcast every second to notify the UI to update seekbar.
+        // Send a broadcast every second to notify the component UI to update seekbar.
         mRunnable = new Runnable() {
             @Override
             public void run() {
@@ -126,7 +122,6 @@ public class SongService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
-
     public void init() {
         sIsInitialized = true;
         // Get the tracks from the db
@@ -137,7 +132,6 @@ public class SongService extends Service {
                 null, // values for "where" clause
                 null // Sort order
         );
-
         mCursor.moveToPosition(Utils.getCurrentTrackPositionPref(getApplicationContext()));
         setPlayerDataSource();
     }
@@ -146,14 +140,12 @@ public class SongService extends Service {
     public void sendPlayerBroadcast(String action) {
         Intent i = new Intent();
         i.setAction(action);
-        // Send the cursor position
         // Use LocalBroadcastManager, more secure when you don't have to share info across apps.
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
     }
 
     // Send broadcasts related to progress of current track.
     public void sendProgressBroadcast(int progress) {
-
         Intent i = new Intent();
         i.setAction(BROADCAST_TRACK_PROGRESS);
         i.putExtra(BROADCAST_TRACK_PROGRESS_KEY, progress);
@@ -162,7 +154,6 @@ public class SongService extends Service {
     }
 
     private void setPlayerDataSource() {
-
         sendPlayerBroadcast(BROADCAST_NOT_READY);
 
         // Reset the player to avoid state exceptions.
@@ -180,8 +171,7 @@ public class SongService extends Service {
         } catch (IllegalStateException e) {
             e.printStackTrace();
         }
-
-        // Notify the UI that the track has changed.
+        // Notify components that the track has changed.
         sendPlayerBroadcast(BROADCAST_TRACK_CHANGED);
 
     }
@@ -189,11 +179,11 @@ public class SongService extends Service {
     public void playPause() {
         if (mPlayer.isPlaying()) {
             mPlayer.pause();
-            sendPlayerBroadcast(BROADCAST_PAUSE);
         } else {
-            sendPlayerBroadcast(BROADCAST_PLAY);
             mPlayer.start();
         }
+        // Notify components that track has been successfully started or paused.
+        sendPlayerBroadcast(BROADCAST_PLAY_PAUSE);
     }
 
     public void playNextTrack() {
@@ -215,6 +205,10 @@ public class SongService extends Service {
     }
     public void updateProgress(int progress) {
         mPlayer.seekTo(progress);
+    }
+
+    public boolean isPlaying() {
+        return mPlayer.isPlaying();
     }
 
 }

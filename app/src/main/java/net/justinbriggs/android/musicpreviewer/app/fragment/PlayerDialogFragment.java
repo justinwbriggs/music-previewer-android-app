@@ -17,6 +17,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -36,14 +37,15 @@ import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
 public class PlayerDialogFragment extends DialogFragment {
 
+    public static final String FRAGMENT_TAG = PlayerDialogFragment.class.getSimpleName();
+
     public static final String POSITION_KEY = "position_key";
     public static final String FROM_ACTION_BAR_KEY = "from_action_bar_key";
+    private static final int PREVIEW_DURATION = 30000;
 
     private SongService mBoundService;
     boolean mIsBound;
 
-    public static final String FRAGMENT_TAG = PlayerDialogFragment.class.getSimpleName();
-    private static final int PREVIEW_DURATION = 30000;
 
     private boolean mHasRun;
     // If the dialog was opened with the Now Playing button
@@ -78,7 +80,6 @@ public class PlayerDialogFragment extends DialogFragment {
         f.setArguments(args);
         return f;
     }
-
 
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -121,7 +122,7 @@ public class PlayerDialogFragment extends DialogFragment {
                 );
                 mCursor.moveToPosition(mPosition);
             }
-
+            updatePlayPause();
             updateUi();
         }
 
@@ -157,7 +158,6 @@ public class PlayerDialogFragment extends DialogFragment {
                              Bundle savedInstanceState) {
 
         bindService();
-
         mContentResolver = getActivity().getContentResolver();
 
         // Tells the host activity that the fragment has menu options it wants to manipulate.
@@ -233,7 +233,6 @@ public class PlayerDialogFragment extends DialogFragment {
     }
 
     private void disableButtons() {
-
         mIbPrevious.setEnabled(false);
         mIbPausePlay.setEnabled(false);
         mIbNext.setEnabled(false);
@@ -245,11 +244,9 @@ public class PlayerDialogFragment extends DialogFragment {
             mIbPausePlay.setImageAlpha(50);
             mIbNext.setImageAlpha(50);
         }
-
     }
 
     private void enableButtons() {
-
         mIbPrevious.setEnabled(true);
         mIbPausePlay.setEnabled(true);
         mIbNext.setEnabled(true);
@@ -259,11 +256,9 @@ public class PlayerDialogFragment extends DialogFragment {
             mIbPausePlay.setImageAlpha(255);
             mIbNext.setImageAlpha(255);
         }
-
     }
 
     private void updateUi() {
-
         mTxtArtist.setText(mCursor.getString(2));
         mTxtAlbum.setText(mCursor.getString(1));
         try {
@@ -292,7 +287,6 @@ public class PlayerDialogFragment extends DialogFragment {
     public void onResume() {
         super.onResume();
         registerReceiver();
-
     }
 
     @Override
@@ -315,13 +309,22 @@ public class PlayerDialogFragment extends DialogFragment {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(SongService.BROADCAST_READY);
         intentFilter.addAction(SongService.BROADCAST_NOT_READY);
-        intentFilter.addAction(SongService.BROADCAST_PLAY);
-        intentFilter.addAction(SongService.BROADCAST_PAUSE);
         intentFilter.addAction(SongService.BROADCAST_TRACK_PROGRESS);
         intentFilter.addAction(SongService.BROADCAST_TRACK_CHANGED);
+        intentFilter.addAction(SongService.BROADCAST_PLAY_PAUSE);
 
         // Use LocalBroadcastManager unless you plan on receiving broadcasts from other apps.
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mReceiver, intentFilter);
+    }
+
+    // The play/pause button is updated when the track is changed(BROADCAST_READY), on rotation and start
+    // (in ServiceConnected), and when the play/pause button is pressed.
+    private void updatePlayPause() {
+        if (mBoundService.isPlaying()) {
+            mIbPausePlay.setImageResource(android.R.drawable.ic_media_pause);
+        } else {
+            mIbPausePlay.setImageResource(android.R.drawable.ic_media_play);
+        }
     }
 
     // TODO: You should be able to register this in the manifest.
@@ -330,15 +333,15 @@ public class PlayerDialogFragment extends DialogFragment {
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            if(intent.getAction().equals(SongService.BROADCAST_READY)) {
+            if (intent.getAction().equals(SongService.BROADCAST_READY)) {
+                // When the player is ready, update the play/pause button and enable all buttons
+                updatePlayPause();
                 enableButtons();
-            } else if(intent.getAction().equals(SongService.BROADCAST_NOT_READY)) {
+            } else if (intent.getAction().equals(SongService.BROADCAST_NOT_READY)) {
                 disableButtons();
-            } else if(intent.getAction().equals(SongService.BROADCAST_PLAY)) {
-                mIbPausePlay.setImageResource(android.R.drawable.ic_media_pause);
-            } else if(intent.getAction().equals(SongService.BROADCAST_PAUSE)) {
-                mIbPausePlay.setImageResource(android.R.drawable.ic_media_play);
-            } else if(intent.getAction().equals(SongService.BROADCAST_TRACK_CHANGED)) {
+            } else if (intent.getAction().equals(SongService.BROADCAST_PLAY_PAUSE)) {
+                updatePlayPause();
+            } else  if(intent.getAction().equals(SongService.BROADCAST_TRACK_CHANGED)) {
                 mCursor = mBoundService.getCurrentCursor();
                 // Record the position for orientation changes.
                 mPosition = mCursor.getPosition();
