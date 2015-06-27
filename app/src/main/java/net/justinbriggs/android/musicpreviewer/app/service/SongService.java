@@ -10,7 +10,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import net.justinbriggs.android.musicpreviewer.app.Utils;
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
@@ -29,22 +28,11 @@ public class SongService extends Service {
     // RemoteService for a more complete example.
     private final IBinder mBinder = new LocalBinder();
 
-    // TODO: Not sure if this is the best method for other components to determine the state,
-    // but I didn't want to have a custom action.
+    // TODO: Not sure if this is the best method for other components to determine player state
     public static boolean sIsInitialized = false;
 
-    public static final String ACTION_INITIALIZE_SERVICE = "initialize_service";
-
+    public static final String ACTION_INITIALIZE_PLAYER = "initialize_player";
     public static final String POSITION_KEY = "position_key";
-    // Refers to the progress of the current track
-    public static final String PROGRESS_KEY = "progress_key";
-
-    // Represent the action requests from the PlayerDialogFragment
-    public static final String ACTION_PLAY_PAUSE = "action_play_pause";
-    public static final String ACTION_NEXT = "action_next";
-    public static final String ACTION_PREVIOUS = "action_prevous";
-    public static final String ACTION_UPDATE_PROGRESS = "action_update_progress";
-
 
     // Intent key for notifying of the current tracks progress.
     public static final String BROADCAST_TRACK_PROGRESS_KEY = "broadcast_track_progress_key";
@@ -54,11 +42,13 @@ public class SongService extends Service {
     public static final String BROADCAST_NOT_READY = "broadcast_not_ready";
     public static final String BROADCAST_PLAY = "broadcast_play";
     public static final String BROADCAST_PAUSE = "broadcast_pause";
-    //public static final String BROADCAST_POSITION = "broadcast_position";
 
     // Notify the UI that it needs to update.
     public static final String BROADCAST_TRACK_CHANGED = "broadcast_track_changed";
 
+    // Once this is set, components can request it through getCurrentCursor(). The TrackDialogFragment
+    // will use it to update the UI when the Now Playing button is pressed, but will use a different
+    // cursor from the db to maintain and manipulate the list of tracks.
     Cursor mCursor;
 
     private MediaPlayer mPlayer;
@@ -96,7 +86,6 @@ public class SongService extends Service {
         mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mediaPlayer) {
-
                 mPlayer.start();
                 sendPlayerBroadcast(BROADCAST_READY);
                 // The runnable will broadcast track progress.
@@ -115,7 +104,6 @@ public class SongService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
         // Send a broadcast every second to notify the UI to update seekbar.
         mRunnable = new Runnable() {
             @Override
@@ -128,31 +116,19 @@ public class SongService extends Service {
             }
         };
 
+        // Should be able to just call init() from component, crashes with null pointer
         if(intent != null) {
-
             //Load up the trackUrls from the db when the service is started.
-            if (intent.getAction().equals(ACTION_INITIALIZE_SERVICE)) {
+            if (intent.getAction().equals(ACTION_INITIALIZE_PLAYER)) {
                init();
-            } else if (intent.getAction().equals(ACTION_PLAY_PAUSE)) {
-               playPause();
-            } else if (intent.getAction().equals(ACTION_PREVIOUS)) {
-                playPreviousTrack();
-            } else if (intent.getAction().equals(ACTION_NEXT)) {
-                playNextTrack();
-            } else if(intent.getAction().equals(ACTION_UPDATE_PROGRESS)) {
-                // Jump to the requested duration.
-                int progress = intent.getIntExtra(PROGRESS_KEY,0);
-                updateProgress(progress);
             }
-
         }
         return super.onStartCommand(intent, flags, startId);
     }
 
-    private void init() {
 
+    public void init() {
         sIsInitialized = true;
-
         // Get the tracks from the db
         mCursor = getApplicationContext().getContentResolver().query(
                 MusicContract.TrackEntry.CONTENT_URI,
@@ -223,7 +199,6 @@ public class SongService extends Service {
     public void playNextTrack() {
         // Go to the first track position if you are on the last.
         if(!mCursor.moveToNext()) {
-            Log.v("qwer", "MovingToPosition0");
             mCursor.moveToPosition(0);
             Utils.setCurrentTrackPositionPref(getApplicationContext(), mCursor.getPosition());
         }

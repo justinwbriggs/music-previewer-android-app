@@ -12,6 +12,7 @@ import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
@@ -45,16 +46,15 @@ public class PlayerDialogFragment extends DialogFragment {
     private static final int PREVIEW_DURATION = 30000;
 
     private boolean mHasRun;
+    // If the dialog was opened with the Now Playing button
     private boolean mFromActionBar;
-
     private int mPosition;
 
-
-    // I had to create this class variable because getActivity.getContentResolver() returns null
-    // when navigating back from the dialog to this fragment, then clicking another track. Not sure why.
+    // Had to create this class variable because getActivity.getContentResolver() returns null
+    // when navigating back from dialog to this fragment, then clicking another track. Not sure why.
     private ContentResolver mContentResolver;
 
-    // User is interacting with seekBar
+    // User is interacting with seekBar via touch/drag
     boolean mIsSeeking;
     BroadcastReceiver mReceiver;
 
@@ -71,13 +71,11 @@ public class PlayerDialogFragment extends DialogFragment {
     private Cursor mCursor;
 
     public static PlayerDialogFragment newInstance(int position, boolean fromActionBar) {
-
         PlayerDialogFragment f = new PlayerDialogFragment();
         Bundle args = new Bundle();
         args.putInt(SongService.POSITION_KEY, position);
         args.putBoolean(FROM_ACTION_BAR_KEY, fromActionBar);
         f.setArguments(args);
-
         return f;
     }
 
@@ -91,22 +89,25 @@ public class PlayerDialogFragment extends DialogFragment {
             // cast its IBinder to a concrete class and directly access it.
             mBoundService = ((SongService.LocalBinder)service).getService();
 
-            // We only want to initialize one time on startup. Prevents orientation change from firing.
+            // Only initialize player one time on startup. Prevents orientation change from firing.
             if(!mHasRun) {
 
-                // We also don't want to re-initialize if the user resumes from action bar button.
+                // Don't want to re-initialize player if the user resumes from action bar button.
                 if(!mFromActionBar) {
                     disableButtons();
-                    // Initialize service when dialog is created, and send the trackUrl list in a bundle.
+
+                    //Initialize player once the service is bound.
                     Intent intent = new Intent(getActivity(), SongService.class);
-                    intent.setAction(SongService.ACTION_INITIALIZE_SERVICE);
+                    intent.setAction(SongService.ACTION_INITIALIZE_PLAYER);
                     getActivity().startService(intent);
+                    // TODO: In theory this should work, but crashes with null pointer.
+                    //mBoundService.init();
                     mHasRun = true;
                 }
             }
 
             if(mFromActionBar) {
-                // If dialog created from the Now Playing button, use it's cursor.
+                // If dialog created from the Now Playing button, use service cursor.
                 mCursor = mBoundService.getCurrentCursor();
 
             } else {
@@ -155,7 +156,6 @@ public class PlayerDialogFragment extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        // We should only doBind when we want to
         bindService();
 
         mContentResolver = getActivity().getContentResolver();
@@ -167,9 +167,11 @@ public class PlayerDialogFragment extends DialogFragment {
         if(getArguments() != null && getArguments().containsKey(FROM_ACTION_BAR_KEY)) {
             mFromActionBar = getArguments().getBoolean(FROM_ACTION_BAR_KEY);
         }
+        // Get position from the TrackListFragment
         if(getArguments() != null && getArguments().containsKey(POSITION_KEY)) {
             mPosition = getArguments().getInt(POSITION_KEY,0);
         }
+        // Get position from savedInstanceState on rotation.
         if(savedInstanceState != null && savedInstanceState.containsKey(POSITION_KEY)) {
             mPosition = savedInstanceState.getInt(POSITION_KEY);
         }
@@ -185,29 +187,27 @@ public class PlayerDialogFragment extends DialogFragment {
         mIvAlbum = (ImageView)rootView.findViewById(R.id.iv_album);
         mTxtTrack = (TextView)rootView.findViewById(R.id.txt_track);
 
-        // Used to configure the play/pause button on rotation.
         mIbPausePlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                sendMediaControlAction(SongService.ACTION_PLAY_PAUSE);
+                mBoundService.playPause();
             }
         });
 
         mIbPrevious.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                sendMediaControlAction(SongService.ACTION_PREVIOUS);
+                mBoundService.playPreviousTrack();
             }
         });
 
         mIbNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                sendMediaControlAction(SongService.ACTION_NEXT);
+                mBoundService.playNextTrack();
             }
         });
 
-        // Set the seekBar
         // All previews are 30 seconds, but the api returns the total track length for some reason.
         mSeekBar.setMax(PREVIEW_DURATION);
 
@@ -223,33 +223,13 @@ public class PlayerDialogFragment extends DialogFragment {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-
-                // Update the progress of the current track.
                 int progress = mSeekBar.getProgress();
-                Intent intent = new Intent(getActivity(), SongService.class);
-                intent.setAction(SongService.ACTION_UPDATE_PROGRESS);
-                intent.putExtra(SongService.PROGRESS_KEY, progress);
-                getActivity().startService(intent);
-
+                mBoundService.updateProgress(progress);
                 mIsSeeking = false;
             }
         });
 
         return rootView;
-    }
-
-    // Communicates clicks with the SongService.
-    private void sendMediaControlAction(String action) {
-        Intent intent = new Intent(getActivity(), SongService.class);
-        intent.setAction(action);
-        getActivity().startService(intent);
-    }
-
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-
     }
 
     private void disableButtons() {
@@ -287,7 +267,6 @@ public class PlayerDialogFragment extends DialogFragment {
         mTxtArtist.setText(mCursor.getString(2));
         mTxtAlbum.setText(mCursor.getString(1));
         try {
-
             // 0 should be the largest image
             //TODO: Make sure you record the thumbnail and the large image in the db
             String imageUrl = mCursor.getString(4);
@@ -301,6 +280,7 @@ public class PlayerDialogFragment extends DialogFragment {
     }
 
 
+    @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
@@ -393,7 +373,7 @@ public class PlayerDialogFragment extends DialogFragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
 
-        // Remove the Now Playing button from this fragment
+        // Don't display Now Playing button in this fragment
         inflater.inflate(R.menu.main, menu);
         menu.findItem(R.id.action_now_playing).setVisible(false);
 
