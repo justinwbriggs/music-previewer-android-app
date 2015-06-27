@@ -60,11 +60,6 @@ public class ArtistListFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
         // After re-orientation, set the last position
@@ -75,13 +70,11 @@ public class ArtistListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
         setHasOptionsMenu(true);
         View rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
         if(savedInstanceState != null && savedInstanceState.containsKey(LIST_KEY)) {
             mArtists = savedInstanceState.getParcelableArrayList(LIST_KEY);
         }
-
 
         mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtists);
 
@@ -227,17 +220,19 @@ public class ArtistListFragment extends Fragment {
 
         ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
         if(actionBar != null) {
-            // Remove the home button and subtitle
-            actionBar.setTitle(getString(R.string.app_name));
-            actionBar.setSubtitle("");
-            if(SongService.sIsInitialized) {
-                if(menu != null) {
+            if(getResources().getBoolean(R.bool.large_layout)) {
+                actionBar.setDisplayHomeAsUpEnabled(false);
+            } else {
+                // Remove the home button and subtitle
+                actionBar.setTitle(getString(R.string.app_name));
+                actionBar.setSubtitle("");
+            }
+            if (SongService.sIsInitialized) {
+                if (menu != null) {
                     menu.findItem(R.id.action_now_playing).setVisible(true);
                 }
             }
         }
     }
-
-
 
 }

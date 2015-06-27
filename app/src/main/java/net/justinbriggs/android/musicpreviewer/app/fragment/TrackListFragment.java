@@ -239,16 +239,21 @@ public class TrackListFragment extends Fragment {
 
         ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
         if(actionBar != null) {
-            // Remove the home button and subtitle
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setSubtitle(mArtistName);
-            if(SongService.sIsInitialized) {
-                    if(menu != null) {
-                        menu.findItem(R.id.action_now_playing).setVisible(true);
-                    }
-                }
-        }
 
+            if (getResources().getBoolean(R.bool.large_layout)) {
+                actionBar.setDisplayHomeAsUpEnabled(false);
+                actionBar.setSubtitle(mArtistName);
+            } else {
+                actionBar.setDisplayHomeAsUpEnabled(true);
+                actionBar.setSubtitle(mArtistName);
+                actionBar.setTitle(getString(R.string.title_track_list));
+            }
+            if (SongService.sIsInitialized) {
+                if (menu != null) {
+                    menu.findItem(R.id.action_now_playing).setVisible(true);
+                }
+            }
+        }
     }
 
     @Override

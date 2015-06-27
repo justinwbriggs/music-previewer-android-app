@@ -382,10 +382,16 @@ public class PlayerDialogFragment extends DialogFragment {
 
         ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
         if(actionBar != null) {
-            // Remove the home button and subtitle
-            actionBar.setDisplayHomeAsUpEnabled(false);
-            actionBar.setSubtitle("");
-            actionBar.setTitle(getString(R.string.app_name));
+
+            if(getDialog() != null) {
+                actionBar.setDisplayHomeAsUpEnabled(false);
+            } else {
+                // Remove the home button and subtitle
+                actionBar.setDisplayHomeAsUpEnabled(false);
+                actionBar.setSubtitle("");
+                actionBar.setTitle(getString(R.string.app_name));
+            }
+
         }
     }
 

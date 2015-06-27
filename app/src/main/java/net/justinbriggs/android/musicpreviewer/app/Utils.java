@@ -12,7 +12,6 @@ public class Utils {
 
     public static void setCurrentTrackPositionPref(Context context, int position) {
 
-
         SharedPreferences sharedPref = context.getSharedPreferences(PREF_KEY, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putInt(PREF_POSITION_KEY, position);
@@ -21,8 +20,6 @@ public class Utils {
     }
 
     public static int getCurrentTrackPositionPref(Context context) {
-
-
 
         SharedPreferences sharedPref = context.getSharedPreferences(PREF_KEY, Context.MODE_PRIVATE);
         int position = sharedPref.getInt(PREF_POSITION_KEY, 0);

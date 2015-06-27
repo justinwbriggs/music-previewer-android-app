@@ -28,7 +28,9 @@ public class MainActivity extends AppCompatActivity
     // See if you can take advantage of the manifest
     // Here's a way this might be accomplished: http://stackoverflow.com/questions/23811136
 
-
+    // TODO: It's a requirement to save the selected item on rotation.
+    //TODO: On handsets, if you press Now Playing and rotate, the dialog disappears. This seems to
+    // only happen intermittently. Looks like it happens when you rotate while the dialog is loading?
 
 
     @Override
@@ -36,9 +38,7 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-
-                mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
+        mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
 
         if (findViewById(R.id.track_list_container) != null) {
 
@@ -100,6 +100,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onTrackSelected(int position) {
 
+        //TODO: We should keep track of the position in a less stupid manner.
         Utils.setCurrentTrackPositionPref(getApplicationContext(), position);
 
         FragmentManager fm = getSupportFragmentManager();
@@ -115,6 +116,7 @@ public class MainActivity extends AppCompatActivity
             // Add the fragment to the backstack
             loadFragment(playerDialogFragment, PlayerDialogFragment.FRAGMENT_TAG);
         }
+
     }
 
     @Override
@@ -167,14 +169,15 @@ public class MainActivity extends AppCompatActivity
 
         FragmentManager manager = getSupportFragmentManager();
         int count = manager.getBackStackEntryCount();
-        if(count==0) {
-            super.onBackPressed();
+
+        // 1 would represent the ArtistListFragment
+        if(count == 1) {
+            //TODO: Prompt the user to leave the app?
+            finish();
         } else{
             manager.popBackStackImmediate();
         }
     }
-
-
 
     /*
         * Only called:
