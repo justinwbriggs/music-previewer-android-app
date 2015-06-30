@@ -1,7 +1,12 @@
 package net.justinbriggs.android.musicpreviewer.app.service;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -9,8 +14,10 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 
+import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.Utils;
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
 
@@ -23,13 +30,6 @@ import java.io.IOException;
 
 public class SongService extends Service {
 
-    // This is the object that receives interactions from clients.
-    // See RemoteService for a more complete example.
-    private final IBinder mBinder = new LocalBinder();
-
-    // TODO: Not sure if this is the best method for other components to determine player state
-    public static boolean sIsInitialized = false;
-
     public static final String ACTION_INITIALIZE_PLAYER = "initialize_player";
     public static final String POSITION_KEY = "position_key";
 
@@ -41,13 +41,27 @@ public class SongService extends Service {
     public static final String BROADCAST_NOT_READY = "broadcast_not_ready";
     public static final String BROADCAST_PLAY_PAUSE = "broadcast_play_pause";
 
+    public static final String BROADCAST_NOTIFICATION_PREVIOUS = "broadcast_notification_previous";
+    public static final String BROADCAST_NOTIFICATION_PlAY_PAUSE = "broadast_notification_play_pause";
+    public static final String BROADCAST_NOTIFICATION_NEXT = "broadcast_notification_next";
+
     // Notify the UI that it needs to update because of track change.
     public static final String BROADCAST_TRACK_CHANGED = "broadcast_track_changed";
+
+    // This is the object that receives interactions from clients.
+    // See RemoteService for a more complete example.
+    private final IBinder mBinder = new LocalBinder();
+
+    // TODO: Not sure if this is the best method for other components to determine player state
+    public static boolean sIsInitialized = false;
+
 
     // Once this is set, components can request it through getCurrentCursor(). The PlayerDialogFragment
     // will use it to update the UI when the Now Playing button is pressed, but will use a different
     // cursor from the db to maintain the UI relative to the track being played.
     Cursor mCursor;
+
+    BroadcastReceiver mReceiver;
 
     private MediaPlayer mPlayer;
     private Handler mHandler = new Handler();
@@ -77,6 +91,7 @@ public class SongService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
 
         mPlayer = new MediaPlayer();
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -116,10 +131,13 @@ public class SongService extends Service {
         if(intent != null) {
             //Load up the trackUrls from the db when the service is started.
             if (intent.getAction().equals(ACTION_INITIALIZE_PLAYER)) {
-               init();
+                registerReceiver();
+                init();
             }
         }
-        return super.onStartCommand(intent, flags, startId);
+
+        // If the system has to kill service due to memory, don't restart.
+        return START_NOT_STICKY;
     }
 
     public void init() {
@@ -134,6 +152,8 @@ public class SongService extends Service {
         );
         mCursor.moveToPosition(Utils.getCurrentTrackPositionPref(getApplicationContext()));
         setPlayerDataSource();
+
+        initNotification();
     }
 
     // Send broadcasts related to player state and track list state.
@@ -209,6 +229,75 @@ public class SongService extends Service {
 
     public boolean isPlaying() {
         return mPlayer.isPlaying();
+    }
+
+    private void initNotification() {
+
+        // Create a new PlayerNotification object.
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.ic_notification_play)
+                        .setContentTitle("TestTitle")
+                        .setSubText("Subtext")
+                        .setAutoCancel(false);
+
+        //Previous intent
+        Intent previousIntent = new Intent();
+        previousIntent.setAction(BROADCAST_NOTIFICATION_PREVIOUS);
+        PendingIntent piPrevious = PendingIntent.getBroadcast(this, 1, previousIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        mBuilder.addAction(android.R.drawable.ic_media_previous, null, piPrevious);
+
+        // PlayPause intent
+        Intent playPauseIntent = new Intent();
+        playPauseIntent.setAction(BROADCAST_NOTIFICATION_PlAY_PAUSE);
+        PendingIntent piPlayPause = PendingIntent.getBroadcast(this, 2, playPauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        mBuilder.addAction(android.R.drawable.ic_media_pause, null, piPlayPause);
+
+        // Next Intent
+        Intent nextIntent = new Intent();
+        nextIntent.setAction(BROADCAST_NOTIFICATION_NEXT);
+        PendingIntent pendingIntentNo = PendingIntent.getBroadcast(this, 3, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        mBuilder.addAction(android.R.drawable.ic_media_next, null, pendingIntentNo);
+
+        notificationManager.notify(1, mBuilder.build());
+    }
+
+    private void registerReceiver() {
+
+        mReceiver = new Receiver();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(SongService.BROADCAST_NOTIFICATION_PREVIOUS);
+        intentFilter.addAction(SongService.BROADCAST_NOTIFICATION_PlAY_PAUSE);
+        intentFilter.addAction(SongService.BROADCAST_NOTIFICATION_NEXT);
+
+        // Use LocalBroadcastManager unless you plan on receiving broadcasts from other apps.
+        //LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, intentFilter);
+
+        // In this case, we are receiving broadcasts from Notification
+        getApplicationContext().registerReceiver(mReceiver, intentFilter);
+    }
+
+    public class Receiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            if (intent.getAction().equals(SongService.BROADCAST_NOTIFICATION_PREVIOUS)) {
+                playPreviousTrack();
+            } else if(intent.getAction().equals(SongService.BROADCAST_NOTIFICATION_PlAY_PAUSE)) {
+                playPause();
+            } else if(intent.getAction().equalsIgnoreCase(SongService.BROADCAST_NOTIFICATION_NEXT)) {
+                playNextTrack();
+            }
+        }
+    }
+
+
+    public void updateNotification() {
+
     }
 
 }

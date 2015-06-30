@@ -313,6 +313,9 @@ public class PlayerDialogFragment extends DialogFragment {
         intentFilter.addAction(SongService.BROADCAST_TRACK_CHANGED);
         intentFilter.addAction(SongService.BROADCAST_PLAY_PAUSE);
 
+        //TODO: test
+        intentFilter.addAction(SongService.BROADCAST_NOTIFICATION_PREVIOUS);
+
         // Use LocalBroadcastManager unless you plan on receiving broadcasts from other apps.
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mReceiver, intentFilter);
     }

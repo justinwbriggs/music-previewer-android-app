@@ -26,6 +26,7 @@
             </intent-filter>
         </activity>
 
+
         <provider
             android:authorities="net.justinbriggs.android.musicpreviewer.app"
             android:name=".data.MusicProvider"

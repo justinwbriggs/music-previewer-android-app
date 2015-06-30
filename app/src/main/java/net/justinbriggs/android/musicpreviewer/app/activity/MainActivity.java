@@ -19,10 +19,11 @@ public class MainActivity extends AppCompatActivity
         implements ArtistListFragment.Listener,
         TrackListFragment.Listener {
 
+    //TODO: There is a full-screen click on the dialog fragment handset.
+
     //TODO: Figure out if we need these two.
     private boolean mTwoPane;
     private boolean mIsLargeLayout;
-
 
     // TODO: go through all the courses and add comments
     // See if you can take advantage of the manifest
@@ -31,6 +32,16 @@ public class MainActivity extends AppCompatActivity
     // TODO: It's a requirement to save the selected item on rotation.
     //TODO: On handsets, if you press Now Playing and rotate, the dialog disappears. This seems to
     // only happen intermittently. Looks like it happens when you rotate while the dialog is loading?
+
+    //TODO: I'm pretty sure I can keep a reference to all the tracks if I start the service with startForeground.
+    // But
+
+
+
+
+
+
+
 
 
     @Override
@@ -208,6 +219,7 @@ public class MainActivity extends AppCompatActivity
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
     }
+
 
 
 }
