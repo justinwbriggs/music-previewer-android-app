@@ -46,7 +46,6 @@ public class PlayerDialogFragment extends DialogFragment {
     private SongService mBoundService;
     boolean mIsBound;
 
-
     private boolean mHasRun;
     // If the dialog was opened with the Now Playing button
     private boolean mFromActionBar;

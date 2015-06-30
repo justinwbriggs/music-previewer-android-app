@@ -1,5 +1,6 @@
 package net.justinbriggs.android.musicpreviewer.app.service;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -11,10 +12,10 @@ import android.database.Cursor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
@@ -156,7 +157,6 @@ public class SongService extends Service {
         );
         mCursor.moveToPosition(Utils.getCurrentTrackPositionPref(getApplicationContext()));
         setPlayerDataSource();
-
         initNotification();
     }
 
@@ -208,6 +208,7 @@ public class SongService extends Service {
         // Notify components that track has been successfully started or paused.
         sendPlayerBroadcast(BROADCAST_PLAY_PAUSE);
         initNotification();
+
     }
 
     public void playNextTrack() {
@@ -238,17 +239,34 @@ public class SongService extends Service {
 
     private void initNotification() {
 
-        //TODO: Non-critical: Should disable controls until the track has finished loading
-        //TODO: Non-critical: Should open the dialog when notification container clicked.
         mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        NotificationCompat.Builder builder =
-                new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.ic_launcher)
-                        .setContentTitle(mCursor.getString(TrackEntry.CURSOR_KEY_ARTIST_NAME))
-                        .setContentText(mCursor.getString(TrackEntry.CURSOR_KEY_TRACK_NAME))
-                        .setAutoCancel(false);
+        Notification.Builder builder = new Notification.Builder(this);
+
+        // Set the common attributes first
+        builder.setContentTitle(mCursor.getString(TrackEntry.CURSOR_KEY_ARTIST_NAME))
+                .setContentText(mCursor.getString(TrackEntry.CURSOR_KEY_TRACK_NAME))
+                .setSmallIcon(R.drawable.ic_placeholder)
+                .setAutoCancel(false);
+
+        // 5.0 devices can show notfications on lock screen.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            // Display the notifications full content on Lock Screen
+            builder.setVisibility(Notification.VISIBILITY_PUBLIC);
+            builder.setStyle(new Notification.MediaStyle().setShowActionsInCompactView(0,1,2));
+        }
+
+        //TODO: Non-critical: Should disable controls until the track has finished loading
+        //TODO: Non-critical: Should open the dialog when notification container clicked.
+
+        //TODO: Need to load the album art
+//        try {
+//            mNotificationBuilder.setLargeIcon(Picasso.with(getApplicationContext())
+//                    .load(mCursor.getString(TrackEntry.CURSOR_KEY_ALBUM_IMAGE_URL)).get());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         //Previous intent
         Intent previousIntent = new Intent();
@@ -262,6 +280,7 @@ public class SongService extends Service {
         playPauseIntent.setAction(BROADCAST_NOTIFICATION_PlAY_PAUSE);
         PendingIntent piPlayPause = PendingIntent.getBroadcast(this, 2, playPauseIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
+
         if(mPlayer.isPlaying()) {
             builder.addAction(android.R.drawable.ic_media_pause, null, piPlayPause);
         } else {
@@ -275,7 +294,7 @@ public class SongService extends Service {
                 PendingIntent.FLAG_UPDATE_CURRENT);
         builder.addAction(android.R.drawable.ic_media_next, null, pendingIntentNo);
 
-        // The first parameter is the id. Use common id since we're also updating the notification.
+        // The first parameter is the id in order to update the notificaiton.
         mNotificationManager.notify(NOTIFICATION_ID, builder.build());
     }
 
