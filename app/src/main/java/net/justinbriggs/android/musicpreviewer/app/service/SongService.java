@@ -19,7 +19,7 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.Utils;
-import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
+import net.justinbriggs.android.musicpreviewer.app.data.MusicContract.TrackEntry;
 
 import java.io.IOException;
 
@@ -29,6 +29,8 @@ import java.io.IOException;
  */
 
 public class SongService extends Service {
+
+    public static final int NOTIFICATION_ID = 1;
 
     public static final String ACTION_INITIALIZE_PLAYER = "initialize_player";
     public static final String POSITION_KEY = "position_key";
@@ -47,6 +49,8 @@ public class SongService extends Service {
 
     // Notify the UI that it needs to update because of track change.
     public static final String BROADCAST_TRACK_CHANGED = "broadcast_track_changed";
+
+    NotificationManager mNotificationManager;
 
     // This is the object that receives interactions from clients.
     // See RemoteService for a more complete example.
@@ -92,7 +96,6 @@ public class SongService extends Service {
     public void onCreate() {
         super.onCreate();
 
-
         mPlayer = new MediaPlayer();
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
@@ -102,6 +105,7 @@ public class SongService extends Service {
                 sendPlayerBroadcast(BROADCAST_READY);
                 // The runnable will broadcast track progress.
                 mRunnable.run();
+                initNotification();
             }
         });
 
@@ -144,7 +148,7 @@ public class SongService extends Service {
         sIsInitialized = true;
         // Get the tracks from the db
         mCursor = getApplicationContext().getContentResolver().query(
-                MusicContract.TrackEntry.CONTENT_URI,
+                TrackEntry.CONTENT_URI,
                 null, // leaving "columns" null just returns all the columns.
                 null, // cols for "where" clause
                 null, // values for "where" clause
@@ -179,8 +183,7 @@ public class SongService extends Service {
         // Reset the player to avoid state exceptions.
         mPlayer.reset();
         try {
-            //TODO: Go back and add constants for the column keys.
-            String url = mCursor.getString(5);
+            String url = mCursor.getString(TrackEntry.CURSOR_KEY_PREVIEW_URL);
             mPlayer.setDataSource(url);
             mPlayer.prepareAsync();
         } catch (IOException e) {
@@ -204,6 +207,7 @@ public class SongService extends Service {
         }
         // Notify components that track has been successfully started or paused.
         sendPlayerBroadcast(BROADCAST_PLAY_PAUSE);
+        initNotification();
     }
 
     public void playNextTrack() {
@@ -223,6 +227,7 @@ public class SongService extends Service {
         }
         setPlayerDataSource();
     }
+
     public void updateProgress(int progress) {
         mPlayer.seekTo(progress);
     }
@@ -233,36 +238,45 @@ public class SongService extends Service {
 
     private void initNotification() {
 
-        // Create a new PlayerNotification object.
-        NotificationManager notificationManager =
+        //TODO: Non-critical: Should disable controls until the track has finished loading
+        //TODO: Non-critical: Should open the dialog when notification container clicked.
+        mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        NotificationCompat.Builder mBuilder =
+        NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.ic_notification_play)
-                        .setContentTitle("TestTitle")
-                        .setSubText("Subtext")
+                        .setSmallIcon(R.drawable.ic_launcher)
+                        .setContentTitle(mCursor.getString(TrackEntry.CURSOR_KEY_ARTIST_NAME))
+                        .setContentText(mCursor.getString(TrackEntry.CURSOR_KEY_TRACK_NAME))
                         .setAutoCancel(false);
 
         //Previous intent
         Intent previousIntent = new Intent();
         previousIntent.setAction(BROADCAST_NOTIFICATION_PREVIOUS);
-        PendingIntent piPrevious = PendingIntent.getBroadcast(this, 1, previousIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        mBuilder.addAction(android.R.drawable.ic_media_previous, null, piPrevious);
+        PendingIntent piPrevious = PendingIntent.getBroadcast(this, 1, previousIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        builder.addAction(android.R.drawable.ic_media_previous, null, piPrevious);
 
         // PlayPause intent
         Intent playPauseIntent = new Intent();
         playPauseIntent.setAction(BROADCAST_NOTIFICATION_PlAY_PAUSE);
-        PendingIntent piPlayPause = PendingIntent.getBroadcast(this, 2, playPauseIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        mBuilder.addAction(android.R.drawable.ic_media_pause, null, piPlayPause);
+        PendingIntent piPlayPause = PendingIntent.getBroadcast(this, 2, playPauseIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        if(mPlayer.isPlaying()) {
+            builder.addAction(android.R.drawable.ic_media_pause, null, piPlayPause);
+        } else {
+            builder.addAction(android.R.drawable.ic_media_play, null, piPlayPause);
+        }
 
         // Next Intent
         Intent nextIntent = new Intent();
         nextIntent.setAction(BROADCAST_NOTIFICATION_NEXT);
-        PendingIntent pendingIntentNo = PendingIntent.getBroadcast(this, 3, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        mBuilder.addAction(android.R.drawable.ic_media_next, null, pendingIntentNo);
+        PendingIntent pendingIntentNo = PendingIntent.getBroadcast(this, 3, nextIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        builder.addAction(android.R.drawable.ic_media_next, null, pendingIntentNo);
 
-        notificationManager.notify(1, mBuilder.build());
+        // The first parameter is the id. Use common id since we're also updating the notification.
+        mNotificationManager.notify(NOTIFICATION_ID, builder.build());
     }
 
     private void registerReceiver() {
@@ -273,10 +287,8 @@ public class SongService extends Service {
         intentFilter.addAction(SongService.BROADCAST_NOTIFICATION_PlAY_PAUSE);
         intentFilter.addAction(SongService.BROADCAST_NOTIFICATION_NEXT);
 
-        // Use LocalBroadcastManager unless you plan on receiving broadcasts from other apps.
-        //LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, intentFilter);
-
-        // In this case, we are receiving broadcasts from Notification
+        // In this case, we are receiving broadcasts from Notification,
+        // so don't use LocalBroadcastManager
         getApplicationContext().registerReceiver(mReceiver, intentFilter);
     }
 
@@ -293,11 +305,6 @@ public class SongService extends Service {
                 playNextTrack();
             }
         }
-    }
-
-
-    public void updateNotification() {
-
     }
 
 }

@@ -34,6 +34,15 @@ public class MusicContract {
     /* Inner class that defines the table contents of the track table */
     public static final class TrackEntry implements BaseColumns {
 
+
+        // Correspond to the column positions
+        public static final int CURSOR_KEY_ALBUM_NAME = 1;
+        public static final int CURSOR_KEY_ARTIST_NAME = 2;
+        public static final int CURSOR_KEY_TRACK_NAME = 3;
+        public static final int CURSOR_KEY_ALBUM_IMAGE_URL = 4;
+        public static final int CURSOR_KEY_PREVIEW_URL = 5;
+
+
         public static final Uri CONTENT_URI =
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_TRACK).build();
 

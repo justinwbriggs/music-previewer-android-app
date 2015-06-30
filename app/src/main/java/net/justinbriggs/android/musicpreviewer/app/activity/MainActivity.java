@@ -33,15 +33,7 @@ public class MainActivity extends AppCompatActivity
     //TODO: On handsets, if you press Now Playing and rotate, the dialog disappears. This seems to
     // only happen intermittently. Looks like it happens when you rotate while the dialog is loading?
 
-    //TODO: I'm pretty sure I can keep a reference to all the tracks if I start the service with startForeground.
-    // But
-
-
-
-
-
-
-
+    //TODO: Need to use startForeground for the service
 
 
     @Override

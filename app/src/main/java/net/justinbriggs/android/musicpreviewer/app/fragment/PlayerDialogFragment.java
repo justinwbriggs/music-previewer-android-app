@@ -17,7 +17,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -33,6 +32,7 @@ import com.squareup.picasso.Picasso;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
+import net.justinbriggs.android.musicpreviewer.app.data.MusicContract.TrackEntry;
 import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
 public class PlayerDialogFragment extends DialogFragment {
@@ -259,19 +259,19 @@ public class PlayerDialogFragment extends DialogFragment {
     }
 
     private void updateUi() {
-        mTxtArtist.setText(mCursor.getString(2));
-        mTxtAlbum.setText(mCursor.getString(1));
+        mTxtArtist.setText(mCursor.getString(TrackEntry.CURSOR_KEY_ARTIST_NAME));
+        mTxtAlbum.setText(mCursor.getString(TrackEntry.CURSOR_KEY_ALBUM_NAME));
         try {
             // 0 should be the largest image
             //TODO: Make sure you record the thumbnail and the large image in the db
-            String imageUrl = mCursor.getString(4);
+            String imageUrl = mCursor.getString(TrackEntry.CURSOR_KEY_ALBUM_IMAGE_URL);
             Picasso.with(getActivity()).load(imageUrl)
                     .placeholder(R.drawable.ic_placeholder)
                     .into(mIvAlbum);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        mTxtTrack.setText(mCursor.getString(3));
+        mTxtTrack.setText(mCursor.getString(TrackEntry.CURSOR_KEY_TRACK_NAME));
     }
 
 
@@ -313,9 +313,6 @@ public class PlayerDialogFragment extends DialogFragment {
         intentFilter.addAction(SongService.BROADCAST_TRACK_CHANGED);
         intentFilter.addAction(SongService.BROADCAST_PLAY_PAUSE);
 
-        //TODO: test
-        intentFilter.addAction(SongService.BROADCAST_NOTIFICATION_PREVIOUS);
-
         // Use LocalBroadcastManager unless you plan on receiving broadcasts from other apps.
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mReceiver, intentFilter);
     }
@@ -330,7 +327,6 @@ public class PlayerDialogFragment extends DialogFragment {
         }
     }
 
-    // TODO: You should be able to register this in the manifest.
     private class Receiver extends BroadcastReceiver {
 
         @Override
