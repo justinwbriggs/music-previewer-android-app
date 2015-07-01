@@ -20,6 +20,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -58,6 +59,9 @@ public class PlayerDialogFragment extends DialogFragment {
     // User is interacting with seekBar via touch/drag
     boolean mIsSeeking;
     BroadcastReceiver mReceiver;
+
+    // Need to keep a reference in order to display dynamically after onCreateOptionsMenu()
+    MenuItem mShareButton;
 
     private TextView mTxtArtist;
     private TextView mTxtAlbum;
@@ -123,6 +127,8 @@ public class PlayerDialogFragment extends DialogFragment {
             }
             updatePlayPause();
             updateUi();
+            displayShareButton();
+
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -370,6 +376,14 @@ public class PlayerDialogFragment extends DialogFragment {
         //mCursor.close();
     }
 
+
+    // Displays the Share Button dynamically once the track has loaded.
+    public void displayShareButton() {
+        if(mShareButton != null) {
+            mShareButton.setVisible(true);
+        }
+    }
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -377,6 +391,9 @@ public class PlayerDialogFragment extends DialogFragment {
         //inflater.inflate(R.menu.main, menu);
         // Don't display Now Playing button in this fragment
         menu.findItem(R.id.action_now_playing).setVisible(false);
+
+        // Keep a reference to this so we can update dynamically.
+        mShareButton = menu.findItem(R.id.action_share);
 
         ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
         if(actionBar != null) {
