@@ -374,8 +374,8 @@ public class PlayerDialogFragment extends DialogFragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
 
+        //inflater.inflate(R.menu.main, menu);
         // Don't display Now Playing button in this fragment
-        inflater.inflate(R.menu.main, menu);
         menu.findItem(R.id.action_now_playing).setVisible(false);
 
         ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();

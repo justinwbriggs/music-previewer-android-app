@@ -1,10 +1,13 @@
 package net.justinbriggs.android.musicpreviewer.app.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.ShareActionProvider;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -14,6 +17,7 @@ import net.justinbriggs.android.musicpreviewer.app.fragment.ArtistListFragment;
 import net.justinbriggs.android.musicpreviewer.app.fragment.PlayerDialogFragment;
 import net.justinbriggs.android.musicpreviewer.app.fragment.TrackListFragment;
 import net.justinbriggs.android.musicpreviewer.app.model.MyArtist;
+import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
 public class MainActivity extends AppCompatActivity
         implements ArtistListFragment.Listener,
@@ -22,8 +26,12 @@ public class MainActivity extends AppCompatActivity
     //TODO: There is a full-screen click on the dialog fragment handset.
 
     //TODO: Figure out if we need these two.
+
     private boolean mTwoPane;
     private boolean mIsLargeLayout;
+
+    private ShareActionProvider mShareActionProvider;
+
 
     // TODO: go through all the courses and add comments
     // See if you can take advantage of the manifest
@@ -122,11 +130,7 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
+
 
     private void loadFragment(Fragment fragment, String tag) {
 
@@ -140,31 +144,61 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        getMenuInflater().inflate(R.menu.main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        //The action bar automatically handles clicks on Home/Up button if you specify a parent
-        // activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        switch (item.getItemId()) {
 
-        if (id == R.id.action_settings) {
-            return true;
+            case android.R.id.home:
+                FragmentManager fm = getSupportFragmentManager();
+                fm.popBackStackImmediate();
+                return true;
+            case R.id.action_settings:
+                return true;
+            case R.id.action_now_playing:
+                PlayerDialogFragment playerDialogFragment = PlayerDialogFragment.newInstance(0, true);
+                if (mIsLargeLayout) {
+                    playerDialogFragment.show(getSupportFragmentManager(), PlayerDialogFragment.FRAGMENT_TAG);
+                } else {
+                    loadFragment(playerDialogFragment, PlayerDialogFragment.FRAGMENT_TAG);
+                }
+                return true;
+            case R.id.action_share:
+
+                //TODO Non-critical: I can't get the share button to appear as an icon, because
+                // the shareIntent must be set onCreateOptionsMenu. It's in the overflow menu for now.
+                if(mShareActionProvider == null) {
+                    setShareIntent(item);
+                }
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
 
-        if (id == android.R.id.home) {
-            FragmentManager fm = getSupportFragmentManager();
-            fm.popBackStackImmediate();
+    }
+
+    private void setShareIntent(MenuItem item) {
+
+
+
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+
+        // We're only technically required to share the url, and some apps only accept a url as EXTRA_TEXT
+        if(SongService.sUrl != null) {
+            shareIntent.putExtra(Intent.EXTRA_TEXT, SongService.sUrl);
+        }
+        if (mShareActionProvider != null) {
+            mShareActionProvider.setShareIntent(shareIntent);
         }
 
-        if (id == R.id.action_now_playing) {
-            PlayerDialogFragment playerDialogFragment = PlayerDialogFragment.newInstance(0, true);
-            if (mIsLargeLayout) {
-                playerDialogFragment.show(getSupportFragmentManager(), PlayerDialogFragment.FRAGMENT_TAG);
-            } else {
-                loadFragment(playerDialogFragment, PlayerDialogFragment.FRAGMENT_TAG);
-            }
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     @Override

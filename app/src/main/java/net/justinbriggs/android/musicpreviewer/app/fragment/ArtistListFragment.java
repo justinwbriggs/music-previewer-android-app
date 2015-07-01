@@ -216,7 +216,8 @@ public class ArtistListFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.main, menu);
+        // Only inflate the menu once in the host activity
+        //inflater.inflate(R.menu.main, menu);
 
         ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
         if(actionBar != null) {
@@ -230,6 +231,7 @@ public class ArtistListFragment extends Fragment {
             if (SongService.sIsInitialized) {
                 if (menu != null) {
                     menu.findItem(R.id.action_now_playing).setVisible(true);
+                    menu.findItem(R.id.action_share).setVisible(true);
                 }
             }
         }

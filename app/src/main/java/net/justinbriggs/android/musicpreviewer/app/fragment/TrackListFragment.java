@@ -235,7 +235,7 @@ public class TrackListFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
 
-        inflater.inflate(R.menu.main, menu);
+        //inflater.inflate(R.menu.main, menu);
 
         ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
         if(actionBar != null) {
@@ -251,6 +251,7 @@ public class TrackListFragment extends Fragment {
             if (SongService.sIsInitialized) {
                 if (menu != null) {
                     menu.findItem(R.id.action_now_playing).setVisible(true);
+                    menu.findItem(R.id.action_share).setVisible(true);
                 }
             }
         }

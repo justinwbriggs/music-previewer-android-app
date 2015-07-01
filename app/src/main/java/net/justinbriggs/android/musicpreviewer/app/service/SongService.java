@@ -60,6 +60,10 @@ public class SongService extends Service {
     // TODO: Not sure if this is the best method for other components to determine player state
     public static boolean sIsInitialized = false;
 
+    //TODO: Is this bad practice? I'm using it to set the Share URL since I don't have easy access
+    // to the service through MainActivity
+    public static String sUrl;
+
 
     // Once this is set, components can request it through getCurrentCursor(). The PlayerDialogFragment
     // will use it to update the UI when the Now Playing button is pressed, but will use a different
@@ -184,6 +188,7 @@ public class SongService extends Service {
         mPlayer.reset();
         try {
             String url = mCursor.getString(TrackEntry.CURSOR_KEY_PREVIEW_URL);
+            sUrl = url;
             mPlayer.setDataSource(url);
             mPlayer.prepareAsync();
         } catch (IOException e) {
@@ -247,7 +252,7 @@ public class SongService extends Service {
         // Set the common attributes first
         builder.setContentTitle(mCursor.getString(TrackEntry.CURSOR_KEY_ARTIST_NAME))
                 .setContentText(mCursor.getString(TrackEntry.CURSOR_KEY_TRACK_NAME))
-                .setSmallIcon(R.drawable.ic_placeholder)
+                .setSmallIcon(R.drawable.ic_launcher)
                 .setAutoCancel(false);
 
         // 5.0 devices can show notfications on lock screen.
@@ -261,6 +266,21 @@ public class SongService extends Service {
         //TODO: Non-critical: Should open the dialog when notification container clicked.
 
         //TODO: Need to load the album art
+        // Try this
+//        Picasso.with(this).load(result.getFullUrl()).into(ivImage, new Callback() {
+//            @Override
+//            public void onSuccess() {
+//                // Setup share intent now that image has loaded
+//                setupShareIntent();
+//            }
+//
+//            @Override
+//            public void onError() {
+//                // ...
+//            }
+//        });
+
+
 //        try {
 //            mNotificationBuilder.setLargeIcon(Picasso.with(getApplicationContext())
 //                    .load(mCursor.getString(TrackEntry.CURSOR_KEY_ALBUM_IMAGE_URL)).get());
