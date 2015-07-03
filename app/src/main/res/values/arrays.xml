@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="pref_is_shown_on_lock_options">
+        <item>@string/pref_is_shown_on_lock_yes_label</item>
+        <item>@string/pref_is_shown_on_lock_no_label</item>
+    </string-array>
+
+    <string-array name="pref_is_shown_on_lock_values">
+        <item>@string/pref_is_shown_on_lock_value_yes</item>
+        <item>@string/pref_is_shown_on_lock_value_no</item>
+    </string-array>
+</resources>

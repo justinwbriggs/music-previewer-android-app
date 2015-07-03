@@ -4,4 +4,9 @@
     <item name="bg_player_dialog" type="color">#ffffff</item>
     <item name="bg_list_selected" type="color">#cccccc</item>
     <item name="bg_pane_divider" type="color">#cccccc</item>
+
+
+    <color name="sunshine_light_blue">#ff64c2f4</color>
+    <color name="sunshine_blue">#ff1ca8f4</color>
+    <color name="sunshine_dark_blue">#0288D1</color>
 </resources>

@@ -15,7 +15,7 @@
         <service android:enabled="true" android:name=".service.SongService" />
 
 
-         <activity
+        <activity
             android:name=".activity.MainActivity"
             android:label="@string/app_name"
              android:launchMode="singleTop"
@@ -26,6 +26,15 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".activity.SettingsActivity"
+            android:label="@string/title_settings"
+            android:parentActivityName=".activity.MainActivity"
+            android:theme="@style/SettingsTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activity.MainActivity" />
+        </activity>
 
         <provider
             android:authorities="net.justinbriggs.android.musicpreviewer.app"

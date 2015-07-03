@@ -217,6 +217,9 @@ public class ArtistListFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         // Only inflate the menu once in the host activity
+
+        //TODO Critical: So commenting this out seems to keep multiple buttons from being created, but
+        // it messes up the back flow
         //inflater.inflate(R.menu.main, menu);
 
         ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();

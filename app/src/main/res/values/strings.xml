@@ -1,9 +1,26 @@
 <resources>
+
+    <!-- Preference Keys -->
+    <string name="pref_position_key">position</string>
+    <string name="pref_is_shown_on_lock_key">is_shown_on_lock</string>
+    <string name="pref_country_code_key">country_code_key</string>
+
+
+    <string name="pref_is_shown_on_lock_label">Display Player Controls on Lock Screen</string>
+    <string name="pref_is_shown_on_lock_yes_label">Yes</string>
+    <string name="pref_is_shown_on_lock_no_label">No</string>
+    <string name="pref_is_shown_on_lock_value_no">no</string>
+    <string name="pref_is_shown_on_lock_value_yes">yes</string>
+
+    <string name="pref_country_code_label">Country Code</string>
+    <string name="pref_country_code_default">us</string>
+
     <string name="app_name">Music Previewer</string>
     <string name="action_settings">Settings</string>
     <string name="action_now_playing">Now Playing</string>
     <string name="action_share">Share</string>
 
+    <string name="title_settings">Settings</string>
     <string name="title_track_list">Top 10 Tracks</string>
 
     <string name="hint_search">Enter artist name</string>

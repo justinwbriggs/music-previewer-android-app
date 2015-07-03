@@ -8,11 +8,12 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ShareActionProvider;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
-import net.justinbriggs.android.musicpreviewer.app.Utils;
+import net.justinbriggs.android.musicpreviewer.app.Utility;
 import net.justinbriggs.android.musicpreviewer.app.fragment.ArtistListFragment;
 import net.justinbriggs.android.musicpreviewer.app.fragment.PlayerDialogFragment;
 import net.justinbriggs.android.musicpreviewer.app.fragment.TrackListFragment;
@@ -24,7 +25,6 @@ public class MainActivity extends AppCompatActivity
         TrackListFragment.Listener {
 
     //TODO: There is a full-screen click on the dialog fragment handset.
-
     //TODO: Figure out if we need these two.
 
     private boolean mTwoPane;
@@ -112,9 +112,10 @@ public class MainActivity extends AppCompatActivity
     public void onTrackSelected(int position) {
 
         //TODO: We should keep track of the position in a less stupid manner.
-        Utils.setCurrentTrackPositionPref(getApplicationContext(), position);
+        Utility.setCurrentTrackPositionPref(getApplicationContext(), position);
 
         FragmentManager fm = getSupportFragmentManager();
+
 
         // Depending on the device size, dialog will either be fullscreen or floating.
         PlayerDialogFragment playerDialogFragment
@@ -129,8 +130,6 @@ public class MainActivity extends AppCompatActivity
         }
 
     }
-
-
 
     private void loadFragment(Fragment fragment, String tag) {
 
@@ -160,6 +159,7 @@ public class MainActivity extends AppCompatActivity
                 fm.popBackStackImmediate();
                 return true;
             case R.id.action_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
                 return true;
             case R.id.action_now_playing:
                 PlayerDialogFragment playerDialogFragment = PlayerDialogFragment.newInstance(0, true);
@@ -184,8 +184,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setShareIntent(MenuItem item) {
-
-
 
         mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
@@ -216,17 +214,23 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Log.v("qwer", "onNewIntent");
+    }
+
     /*
-        * Only called:
-        * 1. After Activity recreation from orientation change.
-        * 2. When returning to this activity from another Activity after this activity has been killed
-        * via memory manager.
-        *
-        * NOT Called when:
-        * 1. Application is first started.
-        * 2. Returning to this activity from another Activity via Back button, and this activity is
-        * currently in a stop state.
-        */
+            * Only called:
+            * 1. After Activity recreation from orientation change.
+            * 2. When returning to this activity from another Activity after this activity has been killed
+            * via memory manager.
+            *
+            * NOT Called when:
+            * 1. Application is first started.
+            * 2. Returning to this activity from another Activity via Back button, and this activity is
+            * currently in a stop state.
+            */
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);

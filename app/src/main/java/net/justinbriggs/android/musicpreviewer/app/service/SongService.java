@@ -19,7 +19,8 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
-import net.justinbriggs.android.musicpreviewer.app.Utils;
+import net.justinbriggs.android.musicpreviewer.app.Utility;
+import net.justinbriggs.android.musicpreviewer.app.activity.MainActivity;
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract.TrackEntry;
 
 import java.io.IOException;
@@ -47,11 +48,13 @@ public class SongService extends Service {
     public static final String BROADCAST_NOTIFICATION_PREVIOUS = "broadcast_notification_previous";
     public static final String BROADCAST_NOTIFICATION_PlAY_PAUSE = "broadast_notification_play_pause";
     public static final String BROADCAST_NOTIFICATION_NEXT = "broadcast_notification_next";
+    public static final String BROADCAST_NOTIFICATION_UPDATE = "broadcast_notification_update";
 
     // Notify the UI that it needs to update because of track change.
     public static final String BROADCAST_TRACK_CHANGED = "broadcast_track_changed";
 
     NotificationManager mNotificationManager;
+    Notification.Builder mNotifyBuilder;
 
     // This is the object that receives interactions from clients.
     // See RemoteService for a more complete example.
@@ -63,7 +66,6 @@ public class SongService extends Service {
     //TODO: Is this bad practice? I'm using it to set the Share URL since I don't have easy access
     // to the service through MainActivity
     public static String sUrl;
-
 
     // Once this is set, components can request it through getCurrentCursor(). The PlayerDialogFragment
     // will use it to update the UI when the Now Playing button is pressed, but will use a different
@@ -159,7 +161,7 @@ public class SongService extends Service {
                 null, // values for "where" clause
                 null // Sort order
         );
-        mCursor.moveToPosition(Utils.getCurrentTrackPositionPref(getApplicationContext()));
+        mCursor.moveToPosition(Utility.getCurrentTrackPositionPref(getApplicationContext()));
         setPlayerDataSource();
         initNotification();
     }
@@ -201,7 +203,6 @@ public class SongService extends Service {
         }
         // Notify components that the track has changed.
         sendPlayerBroadcast(BROADCAST_TRACK_CHANGED);
-
     }
 
     public void playPause() {
@@ -220,7 +221,7 @@ public class SongService extends Service {
         // Go to the first track position if you are on the last.
         if(!mCursor.moveToNext()) {
             mCursor.moveToPosition(0);
-            Utils.setCurrentTrackPositionPref(getApplicationContext(), mCursor.getPosition());
+            Utility.setCurrentTrackPositionPref(getApplicationContext(), mCursor.getPosition());
         }
         setPlayerDataSource();
     }
@@ -229,7 +230,7 @@ public class SongService extends Service {
         // Go to the last track position if you are on the first.
         if(!mCursor.moveToPrevious()) {
             mCursor.moveToPosition(mCursor.getCount() - 1);
-            Utils.setCurrentTrackPositionPref(getApplicationContext(), mCursor.getPosition());
+            Utility.setCurrentTrackPositionPref(getApplicationContext(), mCursor.getPosition());
         }
         setPlayerDataSource();
     }
@@ -242,24 +243,48 @@ public class SongService extends Service {
         return mPlayer.isPlaying();
     }
 
+    //TODO Non-critical: This runs three times on startup. Not a huge deal.
     private void initNotification() {
+
+
+        if(mNotificationManager != null) {
+            return;
+        }
 
         mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        Notification.Builder builder = new Notification.Builder(this);
+        mNotifyBuilder = new Notification.Builder(this);
+
+        // The intent to open the app if the general notification is click (as opposed to a button)
+        // TODO Non-critical: An option would be to build the backstack and then display the player dialog, instead of
+        // just resuming the last screen
+        Intent broadClickIntent = new Intent(this, MainActivity.class);
+        PendingIntent broadClickPendingIntent =
+                PendingIntent.getActivity(this, 0, broadClickIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT);
 
         // Set the common attributes first
-        builder.setContentTitle(mCursor.getString(TrackEntry.CURSOR_KEY_ARTIST_NAME))
+        mNotifyBuilder.setContentTitle(mCursor.getString(TrackEntry.CURSOR_KEY_ARTIST_NAME))
                 .setContentText(mCursor.getString(TrackEntry.CURSOR_KEY_TRACK_NAME))
                 .setSmallIcon(R.drawable.ic_launcher)
+                .setContentIntent(broadClickPendingIntent)
                 .setAutoCancel(false);
 
-        // 5.0 devices can show notfications on lock screen.
+        // 5.0 devices can show notifications on lock screen.
+        // There are a few poorly documented caveats to displaying notifications:
+        //http://stackoverflow.com/questions/26932457
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // Display the notifications full content on Lock Screen
-            builder.setVisibility(Notification.VISIBILITY_PUBLIC);
-            builder.setStyle(new Notification.MediaStyle().setShowActionsInCompactView(0,1,2));
+            // A preference determines whether or not to display on the lock screen.
+            if(Utility.isShownOnLock(getApplicationContext())) {
+                // Display the notifications full content on Lock Screen
+                mNotifyBuilder.setVisibility(Notification.VISIBILITY_PUBLIC);
+                // Set the button actions
+                mNotifyBuilder.setStyle(new Notification.MediaStyle().setShowActionsInCompactView(0,1,2));
+            } else {
+                // SECRET means no notification at all. PRIVATE means general info with no controls.
+                mNotifyBuilder.setVisibility(Notification.VISIBILITY_SECRET);
+            }
         }
 
         //TODO: Non-critical: Should disable controls until the track has finished loading
@@ -293,18 +318,17 @@ public class SongService extends Service {
         previousIntent.setAction(BROADCAST_NOTIFICATION_PREVIOUS);
         PendingIntent piPrevious = PendingIntent.getBroadcast(this, 1, previousIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
-        builder.addAction(android.R.drawable.ic_media_previous, null, piPrevious);
+        mNotifyBuilder.addAction(android.R.drawable.ic_media_previous, null, piPrevious);
 
         // PlayPause intent
         Intent playPauseIntent = new Intent();
         playPauseIntent.setAction(BROADCAST_NOTIFICATION_PlAY_PAUSE);
         PendingIntent piPlayPause = PendingIntent.getBroadcast(this, 2, playPauseIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
-
         if(mPlayer.isPlaying()) {
-            builder.addAction(android.R.drawable.ic_media_pause, null, piPlayPause);
+            mNotifyBuilder.addAction(android.R.drawable.ic_media_pause, null, piPlayPause);
         } else {
-            builder.addAction(android.R.drawable.ic_media_play, null, piPlayPause);
+            mNotifyBuilder.addAction(android.R.drawable.ic_media_play, null, piPlayPause);
         }
 
         // Next Intent
@@ -312,11 +336,12 @@ public class SongService extends Service {
         nextIntent.setAction(BROADCAST_NOTIFICATION_NEXT);
         PendingIntent pendingIntentNo = PendingIntent.getBroadcast(this, 3, nextIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
-        builder.addAction(android.R.drawable.ic_media_next, null, pendingIntentNo);
+        mNotifyBuilder.addAction(android.R.drawable.ic_media_next, null, pendingIntentNo);
 
         // The first parameter is the id in order to update the notificaiton.
-        mNotificationManager.notify(NOTIFICATION_ID, builder.build());
+        mNotificationManager.notify(NOTIFICATION_ID, mNotifyBuilder.build());
     }
+
 
     private void registerReceiver() {
 
@@ -325,6 +350,7 @@ public class SongService extends Service {
         intentFilter.addAction(SongService.BROADCAST_NOTIFICATION_PREVIOUS);
         intentFilter.addAction(SongService.BROADCAST_NOTIFICATION_PlAY_PAUSE);
         intentFilter.addAction(SongService.BROADCAST_NOTIFICATION_NEXT);
+        intentFilter.addAction(SongService.BROADCAST_NOTIFICATION_UPDATE);
 
         // In this case, we are receiving broadcasts from Notification,
         // so don't use LocalBroadcastManager
@@ -336,14 +362,36 @@ public class SongService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
 
+
+            //TODO Critical: There is an issue where if I start a track, then back up and start
+            // another through the list, is duplicates the broadcast reception here.
+            // Probably due to multiple receivers being registered, instead of just one.
+            // 1. start new track
+            // 2. back up to the track list
+            // 3. select a new track
+            // 4. Try to use lock screen controls.
+
+
             if (intent.getAction().equals(SongService.BROADCAST_NOTIFICATION_PREVIOUS)) {
                 playPreviousTrack();
             } else if(intent.getAction().equals(SongService.BROADCAST_NOTIFICATION_PlAY_PAUSE)) {
                 playPause();
             } else if(intent.getAction().equalsIgnoreCase(SongService.BROADCAST_NOTIFICATION_NEXT)) {
                 playNextTrack();
+            } else if(intent.getAction().equalsIgnoreCase(SongService.BROADCAST_NOTIFICATION_UPDATE)) {
+                // Updates the notification in the case of a Settings change.
+                initNotification();
             }
         }
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        try {
+            getApplicationContext().unregisterReceiver(mReceiver);
+        } catch(IllegalArgumentException e) {
+            //e.printStackTrace();
+        }
+    }
 }

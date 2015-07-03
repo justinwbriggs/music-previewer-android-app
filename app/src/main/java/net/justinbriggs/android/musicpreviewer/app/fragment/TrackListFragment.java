@@ -18,13 +18,13 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
+import net.justinbriggs.android.musicpreviewer.app.Utility;
 import net.justinbriggs.android.musicpreviewer.app.adapter.TrackListAdapter;
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
 import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
@@ -140,7 +140,9 @@ public class TrackListFragment extends Fragment {
             try {
 
                 Map<String, Object> map = new HashMap<>();
-                map.put("country", Locale.getDefault().getCountry());
+
+                // An  ISO 3166-1 alpha-2 country code
+                map.put("country", Utility.getPrefCountryCode(getActivity()));
 
                 List<Track> tracks = spotify.getArtistTopTrack(params[0], map).tracks;
                 if(tracks.size() == 0) {
@@ -168,13 +170,6 @@ public class TrackListFragment extends Fragment {
 
                 }
 
-
-
-                //TODO: So here is where I'm getting screwed up. Every time I click on an artist and
-                // the track list reloads, I'm saving it in the db
-
-                // TODO: Check to see if these results are the same as the
-
                 // Add the tracks to the db
                 getActivity().getContentResolver()
                         .bulkInsert(MusicContract.TrackEntry.CONTENT_URI, contentValues);
@@ -182,6 +177,7 @@ public class TrackListFragment extends Fragment {
                 return tracks;
 
             } catch(Exception e) {
+                //TODO: The country code has the potential to return a 400 Bad Request.
                 e.printStackTrace();
             }
 
@@ -234,8 +230,6 @@ public class TrackListFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-
-        //inflater.inflate(R.menu.main, menu);
 
         ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
         if(actionBar != null) {

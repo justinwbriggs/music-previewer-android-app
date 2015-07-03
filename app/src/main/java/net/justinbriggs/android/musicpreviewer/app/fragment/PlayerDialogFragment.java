@@ -17,6 +17,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -161,6 +162,8 @@ public class PlayerDialogFragment extends DialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        Log.v("qwer", "onCreateView");
 
         bindService();
         mContentResolver = getActivity().getContentResolver();
@@ -372,10 +375,11 @@ public class PlayerDialogFragment extends DialogFragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        Log.v("qwer", "onDestroy");
         //TODO: Going to have to close this?
         //mCursor.close();
     }
-
 
     // Displays the Share Button dynamically once the track has loaded.
     public void displayShareButton() {
@@ -415,4 +419,6 @@ public class PlayerDialogFragment extends DialogFragment {
         super.onSaveInstanceState(outState);
         outState.putInt(POSITION_KEY, mPosition);
     }
+
+
 }
