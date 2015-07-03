@@ -59,7 +59,7 @@ public class PlayerDialogFragment extends DialogFragment {
 
     // User is interacting with seekBar via touch/drag
     boolean mIsSeeking;
-    BroadcastReceiver mReceiver;
+    BroadcastReceiver mReceiver = null;
 
     // Need to keep a reference in order to display dynamically after onCreateOptionsMenu()
     MenuItem mShareButton;
@@ -162,8 +162,6 @@ public class PlayerDialogFragment extends DialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
-        Log.v("qwer", "onCreateView");
 
         bindService();
         mContentResolver = getActivity().getContentResolver();
@@ -282,7 +280,6 @@ public class PlayerDialogFragment extends DialogFragment {
         mTxtTrack.setText(mCursor.getString(TrackEntry.CURSOR_KEY_TRACK_NAME));
     }
 
-
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -294,24 +291,18 @@ public class PlayerDialogFragment extends DialogFragment {
     @Override
     public void onResume() {
         super.onResume();
-        registerReceiver();
+        if(mReceiver == null) {
+            registerReceiver();
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-
-        // Peculiar behaviour, exception happens on some configuration changes
-        // Could be a bug: https://code.google.com/p/android/issues/detail?id=6191
-        try {
-            getActivity().unregisterReceiver(mReceiver);
-        } catch(IllegalArgumentException e) {
-            //e.printStackTrace();
-        }
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mReceiver);
     }
 
     private void registerReceiver() {
-
         // Register the BroadcastReceiver so SongService can send event notifications
         mReceiver = new Receiver();
         IntentFilter intentFilter = new IntentFilter();
@@ -324,6 +315,7 @@ public class PlayerDialogFragment extends DialogFragment {
         // Use LocalBroadcastManager unless you plan on receiving broadcasts from other apps.
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mReceiver, intentFilter);
     }
+
 
     // The play/pause button is updated when the track is changed(BROADCAST_READY), on rotation and start
     // (in ServiceConnected), and when the play/pause button is pressed.

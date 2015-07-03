@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.Utility;
@@ -103,6 +104,9 @@ public class SongService extends Service {
     public void onCreate() {
         super.onCreate();
 
+        // Only want to register a receiver the first time
+        registerReceiver();
+
         mPlayer = new MediaPlayer();
         mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
@@ -142,7 +146,6 @@ public class SongService extends Service {
         if(intent != null) {
             //Load up the trackUrls from the db when the service is started.
             if (intent.getAction().equals(ACTION_INITIALIZE_PLAYER)) {
-                registerReceiver();
                 init();
             }
         }
@@ -243,13 +246,7 @@ public class SongService extends Service {
         return mPlayer.isPlaying();
     }
 
-    //TODO Non-critical: This runs three times on startup. Not a huge deal.
     private void initNotification() {
-
-
-        if(mNotificationManager != null) {
-            return;
-        }
 
         mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -275,6 +272,10 @@ public class SongService extends Service {
         // There are a few poorly documented caveats to displaying notifications:
         //http://stackoverflow.com/questions/26932457
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+
+            // Don't display the notification time
+            mNotifyBuilder.setShowWhen(false);
+
             // A preference determines whether or not to display on the lock screen.
             if(Utility.isShownOnLock(getApplicationContext())) {
                 // Display the notifications full content on Lock Screen
@@ -316,14 +317,14 @@ public class SongService extends Service {
         //Previous intent
         Intent previousIntent = new Intent();
         previousIntent.setAction(BROADCAST_NOTIFICATION_PREVIOUS);
-        PendingIntent piPrevious = PendingIntent.getBroadcast(this, 1, previousIntent,
+        PendingIntent piPrevious = PendingIntent.getBroadcast(this, (int)System.currentTimeMillis(), previousIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
         mNotifyBuilder.addAction(android.R.drawable.ic_media_previous, null, piPrevious);
 
         // PlayPause intent
         Intent playPauseIntent = new Intent();
         playPauseIntent.setAction(BROADCAST_NOTIFICATION_PlAY_PAUSE);
-        PendingIntent piPlayPause = PendingIntent.getBroadcast(this, 2, playPauseIntent,
+        PendingIntent piPlayPause = PendingIntent.getBroadcast(this, (int)System.currentTimeMillis(), playPauseIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
         if(mPlayer.isPlaying()) {
             mNotifyBuilder.addAction(android.R.drawable.ic_media_pause, null, piPlayPause);
@@ -334,9 +335,9 @@ public class SongService extends Service {
         // Next Intent
         Intent nextIntent = new Intent();
         nextIntent.setAction(BROADCAST_NOTIFICATION_NEXT);
-        PendingIntent pendingIntentNo = PendingIntent.getBroadcast(this, 3, nextIntent,
+        PendingIntent pendingIntentNext = PendingIntent.getBroadcast(this, (int)System.currentTimeMillis(), nextIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
-        mNotifyBuilder.addAction(android.R.drawable.ic_media_next, null, pendingIntentNo);
+        mNotifyBuilder.addAction(android.R.drawable.ic_media_next, null, pendingIntentNext);
 
         // The first parameter is the id in order to update the notificaiton.
         mNotificationManager.notify(NOTIFICATION_ID, mNotifyBuilder.build());
@@ -357,11 +358,13 @@ public class SongService extends Service {
         getApplicationContext().registerReceiver(mReceiver, intentFilter);
     }
 
+
     public class Receiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
 
+            Log.v("qwer", "onReceive: " + intent.getAction());
 
             //TODO Critical: There is an issue where if I start a track, then back up and start
             // another through the list, is duplicates the broadcast reception here.
@@ -371,6 +374,7 @@ public class SongService extends Service {
             // 3. select a new track
             // 4. Try to use lock screen controls.
 
+            //IS it receiving from three notifications? Or is it receiving 3 intents from one?
 
             if (intent.getAction().equals(SongService.BROADCAST_NOTIFICATION_PREVIOUS)) {
                 playPreviousTrack();
@@ -388,6 +392,7 @@ public class SongService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+
         try {
             getApplicationContext().unregisterReceiver(mReceiver);
         } catch(IllegalArgumentException e) {
