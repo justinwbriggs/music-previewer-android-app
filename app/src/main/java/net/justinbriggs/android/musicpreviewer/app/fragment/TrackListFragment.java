@@ -47,10 +47,6 @@ public class TrackListFragment extends Fragment {
     private TrackListAdapter mTrackListAdapter;
 
     public static TrackListFragment newInstance(String artistId, String artistName) {
-
-        //TODO: We'll be passing the position off to the SongService for now, but keeping it in sync
-        // is going to be an issue. Might want to see if you can just allow for this dialog to
-        // get the current position from the SongService.
         TrackListFragment f = new TrackListFragment();
         Bundle args = new Bundle();
         args.putString(EXTRA_ID, artistId);
@@ -72,11 +68,9 @@ public class TrackListFragment extends Fragment {
         if(getArguments().containsKey(EXTRA_NAME)) {
             mArtistName = getArguments().getString(EXTRA_NAME);
         }
-
         if(savedInstanceState != null && savedInstanceState.containsKey(EXTRA_ID)) {
             mArtistId = savedInstanceState.getString(EXTRA_ID);
         }
-
         if(savedInstanceState != null && savedInstanceState.containsKey(EXTRA_NAME)) {
             mArtistName = savedInstanceState.getString(EXTRA_NAME);
         }

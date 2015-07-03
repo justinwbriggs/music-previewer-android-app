@@ -1,7 +1,6 @@
 package net.justinbriggs.android.musicpreviewer.app.service;
 
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -17,7 +16,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.Utility;
@@ -54,7 +52,6 @@ public class SongService extends Service {
     // Notify the UI that it needs to update because of track change.
     public static final String BROADCAST_TRACK_CHANGED = "broadcast_track_changed";
 
-    NotificationManager mNotificationManager;
     Notification.Builder mNotifyBuilder;
 
     // This is the object that receives interactions from clients.
@@ -248,9 +245,6 @@ public class SongService extends Service {
 
     private void initNotification() {
 
-        mNotificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
         mNotifyBuilder = new Notification.Builder(this);
 
         // The intent to open the app if the general notification is click (as opposed to a button)
@@ -339,8 +333,11 @@ public class SongService extends Service {
                 PendingIntent.FLAG_UPDATE_CURRENT);
         mNotifyBuilder.addAction(android.R.drawable.ic_media_next, null, pendingIntentNext);
 
-        // The first parameter is the id in order to update the notificaiton.
-        mNotificationManager.notify(NOTIFICATION_ID, mNotifyBuilder.build());
+        // You could use an instance of NotificationManager and call notify(), but this keeps the
+        // player from being dismissed.
+        //TODO Non-critical: Like to be able to dismiss the notification drawer player (functionally stopping the service), but not the
+        // lock screen player (like Pocket Casts does).
+        startForeground(NOTIFICATION_ID,mNotifyBuilder.build());
     }
 
 
@@ -364,18 +361,6 @@ public class SongService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
 
-            Log.v("qwer", "onReceive: " + intent.getAction());
-
-            //TODO Critical: There is an issue where if I start a track, then back up and start
-            // another through the list, is duplicates the broadcast reception here.
-            // Probably due to multiple receivers being registered, instead of just one.
-            // 1. start new track
-            // 2. back up to the track list
-            // 3. select a new track
-            // 4. Try to use lock screen controls.
-
-            //IS it receiving from three notifications? Or is it receiving 3 intents from one?
-
             if (intent.getAction().equals(SongService.BROADCAST_NOTIFICATION_PREVIOUS)) {
                 playPreviousTrack();
             } else if(intent.getAction().equals(SongService.BROADCAST_NOTIFICATION_PlAY_PAUSE)) {
@@ -392,11 +377,10 @@ public class SongService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-
         try {
             getApplicationContext().unregisterReceiver(mReceiver);
         } catch(IllegalArgumentException e) {
-            //e.printStackTrace();
+            e.printStackTrace();
         }
     }
 }

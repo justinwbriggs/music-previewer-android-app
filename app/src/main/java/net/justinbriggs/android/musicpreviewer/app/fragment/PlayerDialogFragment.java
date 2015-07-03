@@ -17,7 +17,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -291,9 +290,7 @@ public class PlayerDialogFragment extends DialogFragment {
     @Override
     public void onResume() {
         super.onResume();
-        if(mReceiver == null) {
-            registerReceiver();
-        }
+        registerReceiver();
     }
 
     @Override
@@ -315,7 +312,6 @@ public class PlayerDialogFragment extends DialogFragment {
         // Use LocalBroadcastManager unless you plan on receiving broadcasts from other apps.
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mReceiver, intentFilter);
     }
-
 
     // The play/pause button is updated when the track is changed(BROADCAST_READY), on rotation and start
     // (in ServiceConnected), and when the play/pause button is pressed.
@@ -367,8 +363,6 @@ public class PlayerDialogFragment extends DialogFragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-
-        Log.v("qwer", "onDestroy");
         //TODO: Going to have to close this?
         //mCursor.close();
     }
@@ -411,6 +405,5 @@ public class PlayerDialogFragment extends DialogFragment {
         super.onSaveInstanceState(outState);
         outState.putInt(POSITION_KEY, mPosition);
     }
-
 
 }

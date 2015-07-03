@@ -8,7 +8,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ShareActionProvider;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -25,17 +24,11 @@ public class MainActivity extends AppCompatActivity
         TrackListFragment.Listener {
 
     //TODO: There is a full-screen click on the dialog fragment handset.
-    //TODO: Figure out if we need these two.
 
     private boolean mTwoPane;
     private boolean mIsLargeLayout;
 
     private ShareActionProvider mShareActionProvider;
-
-
-    // TODO: go through all the courses and add comments
-    // See if you can take advantage of the manifest
-    // Here's a way this might be accomplished: http://stackoverflow.com/questions/23811136
 
     // TODO: It's a requirement to save the selected item on rotation.
     //TODO: On handsets, if you press Now Playing and rotate, the dialog disappears. This seems to
@@ -43,6 +36,7 @@ public class MainActivity extends AppCompatActivity
 
     //TODO: Need to use startForeground for the service
 
+    // TODO: Need to be able to dismiss the player from the notification drawer, but not the lock screen.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -217,7 +211,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        Log.v("qwer", "onNewIntent");
     }
 
     /*
