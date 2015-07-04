@@ -1,6 +1,7 @@
 package net.justinbriggs.android.musicpreviewer.app.service;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -8,6 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
@@ -16,6 +19,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
+
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.Utility;
@@ -28,6 +34,9 @@ import java.io.IOException;
  * IntentService vs. Service for a music player
  * http://stackoverflow.com/questions/18125447/using-intentservice-for-mediaplayer-playback
  */
+
+//TODO: When returning from the lock screen notification after switching tracks, the dialog needs
+// to update
 
 public class SongService extends Service {
 
@@ -54,15 +63,17 @@ public class SongService extends Service {
 
     Notification.Builder mNotifyBuilder;
 
+    // Keep a reference to the album image since it is loaded asyncronously
+    Bitmap mAlbumImage;
+
     // This is the object that receives interactions from clients.
     // See RemoteService for a more complete example.
     private final IBinder mBinder = new LocalBinder();
 
-    // TODO: Not sure if this is the best method for other components to determine player state
+    //TODO: Is this bad practice? I'm using it to set the Share URL and determine state since I
+    // don't have easy access to the service through MainActivity
+    //TODO: Might need to clear these onDestroy()
     public static boolean sIsInitialized = false;
-
-    //TODO: Is this bad practice? I'm using it to set the Share URL since I don't have easy access
-    // to the service through MainActivity
     public static String sUrl;
 
     // Once this is set, components can request it through getCurrentCursor(). The PlayerDialogFragment
@@ -97,6 +108,20 @@ public class SongService extends Service {
         return mCursor;
     }
 
+    // Loading a picasso image into a Notification is a bit tricky, so used this method:
+    // http://stackoverflow.com/questions/20181491
+    private Target mTarget = new Target() {
+        @Override
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+            mAlbumImage = bitmap;
+            setBuilderTrackImage();
+        }
+        @Override
+        public void onBitmapFailed(Drawable errorDrawable) {}
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {}
+    };
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -113,7 +138,9 @@ public class SongService extends Service {
                 sendPlayerBroadcast(BROADCAST_READY);
                 // The runnable will broadcast track progress.
                 mRunnable.run();
-                initNotification();
+                buildNotification();
+                Picasso.with(getApplicationContext()).load(
+                        mCursor.getString(TrackEntry.CURSOR_KEY_ALBUM_IMAGE_URL)).into(mTarget);
             }
         });
 
@@ -146,7 +173,6 @@ public class SongService extends Service {
                 init();
             }
         }
-
         // If the system has to kill service due to memory, don't restart.
         return START_NOT_STICKY;
     }
@@ -163,7 +189,6 @@ public class SongService extends Service {
         );
         mCursor.moveToPosition(Utility.getCurrentTrackPositionPref(getApplicationContext()));
         setPlayerDataSource();
-        initNotification();
     }
 
     // Send broadcasts related to player state and track list state.
@@ -213,8 +238,7 @@ public class SongService extends Service {
         }
         // Notify components that track has been successfully started or paused.
         sendPlayerBroadcast(BROADCAST_PLAY_PAUSE);
-        initNotification();
-
+        buildNotification();
     }
 
     public void playNextTrack() {
@@ -243,83 +267,62 @@ public class SongService extends Service {
         return mPlayer.isPlaying();
     }
 
-    private void initNotification() {
+    // We only want to build this notification one time.
+    private void buildNotification() {
+
+        //TODO: Non-critical: Should disable controls until the track has finished loading
+        //TODO: Non-critical: Should open the dialog when notification container clicked.
 
         mNotifyBuilder = new Notification.Builder(this);
 
-        // The intent to open the app if the general notification is click (as opposed to a button)
         // TODO Non-critical: An option would be to build the backstack and then display the player dialog, instead of
         // just resuming the last screen
+
+        // The intent to open the app if the general notification is click (as opposed to a button)
         Intent broadClickIntent = new Intent(this, MainActivity.class);
         PendingIntent broadClickPendingIntent =
                 PendingIntent.getActivity(this, 0, broadClickIntent,
                         PendingIntent.FLAG_UPDATE_CURRENT);
 
         // Set the common attributes first
-        mNotifyBuilder.setContentTitle(mCursor.getString(TrackEntry.CURSOR_KEY_ARTIST_NAME))
-                .setContentText(mCursor.getString(TrackEntry.CURSOR_KEY_TRACK_NAME))
-                .setSmallIcon(R.drawable.ic_launcher)
+        mNotifyBuilder
+                .setSmallIcon(R.drawable.ic_notification)
+                // The Large icon
+                .setLargeIcon(mAlbumImage)
                 .setContentIntent(broadClickPendingIntent)
-                .setAutoCancel(false);
+                .setAutoCancel(false)
+                .setContentTitle(mCursor.getString(TrackEntry.CURSOR_KEY_ARTIST_NAME))
+                .setContentText(mCursor.getString(TrackEntry.CURSOR_KEY_TRACK_NAME));
 
+        // Sets the builder options to display on lock screen or not.
         // 5.0 devices can show notifications on lock screen.
         // There are a few poorly documented caveats to displaying notifications:
         //http://stackoverflow.com/questions/26932457
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-
             // Don't display the notification time
             mNotifyBuilder.setShowWhen(false);
-
             // A preference determines whether or not to display on the lock screen.
-            if(Utility.isShownOnLock(getApplicationContext())) {
+            if (Utility.isShownOnLock(getApplicationContext())) {
                 // Display the notifications full content on Lock Screen
                 mNotifyBuilder.setVisibility(Notification.VISIBILITY_PUBLIC);
                 // Set the button actions
-                mNotifyBuilder.setStyle(new Notification.MediaStyle().setShowActionsInCompactView(0,1,2));
+                mNotifyBuilder.setStyle(new Notification.MediaStyle().setShowActionsInCompactView(0, 1, 2));
             } else {
                 // SECRET means no notification at all. PRIVATE means general info with no controls.
                 mNotifyBuilder.setVisibility(Notification.VISIBILITY_SECRET);
             }
         }
 
-        //TODO: Non-critical: Should disable controls until the track has finished loading
-        //TODO: Non-critical: Should open the dialog when notification container clicked.
-
-        //TODO: Need to load the album art
-        // Try this
-//        Picasso.with(this).load(result.getFullUrl()).into(ivImage, new Callback() {
-//            @Override
-//            public void onSuccess() {
-//                // Setup share intent now that image has loaded
-//                setupShareIntent();
-//            }
-//
-//            @Override
-//            public void onError() {
-//                // ...
-//            }
-//        });
-
-
-//        try {
-//            mNotificationBuilder.setLargeIcon(Picasso.with(getApplicationContext())
-//                    .load(mCursor.getString(TrackEntry.CURSOR_KEY_ALBUM_IMAGE_URL)).get());
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
         //Previous intent
-        Intent previousIntent = new Intent();
-        previousIntent.setAction(BROADCAST_NOTIFICATION_PREVIOUS);
-        PendingIntent piPrevious = PendingIntent.getBroadcast(this, (int)System.currentTimeMillis(), previousIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent previousIntent = new Intent().setAction(BROADCAST_NOTIFICATION_PREVIOUS);
+        PendingIntent piPrevious = PendingIntent.getBroadcast(this,
+                (int)System.currentTimeMillis(), previousIntent, 0);
         mNotifyBuilder.addAction(android.R.drawable.ic_media_previous, null, piPrevious);
 
         // PlayPause intent
-        Intent playPauseIntent = new Intent();
-        playPauseIntent.setAction(BROADCAST_NOTIFICATION_PlAY_PAUSE);
-        PendingIntent piPlayPause = PendingIntent.getBroadcast(this, (int)System.currentTimeMillis(), playPauseIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent playPauseIntent = new Intent().setAction(BROADCAST_NOTIFICATION_PlAY_PAUSE);
+        PendingIntent piPlayPause = PendingIntent.getBroadcast(this,
+                (int)System.currentTimeMillis(), playPauseIntent, 0);
         if(mPlayer.isPlaying()) {
             mNotifyBuilder.addAction(android.R.drawable.ic_media_pause, null, piPlayPause);
         } else {
@@ -327,10 +330,9 @@ public class SongService extends Service {
         }
 
         // Next Intent
-        Intent nextIntent = new Intent();
-        nextIntent.setAction(BROADCAST_NOTIFICATION_NEXT);
-        PendingIntent pendingIntentNext = PendingIntent.getBroadcast(this, (int)System.currentTimeMillis(), nextIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent nextIntent = new Intent().setAction(BROADCAST_NOTIFICATION_NEXT);
+        PendingIntent pendingIntentNext = PendingIntent.getBroadcast(this,
+                (int)System.currentTimeMillis(), nextIntent, 0);
         mNotifyBuilder.addAction(android.R.drawable.ic_media_next, null, pendingIntentNext);
 
         // You could use an instance of NotificationManager and call notify(), but this keeps the
@@ -340,6 +342,12 @@ public class SongService extends Service {
         startForeground(NOTIFICATION_ID,mNotifyBuilder.build());
     }
 
+    public void setBuilderTrackImage() {
+        mNotifyBuilder.setLargeIcon(mAlbumImage);
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(NOTIFICATION_ID, mNotifyBuilder.build());
+    }
 
     private void registerReceiver() {
 
@@ -355,7 +363,6 @@ public class SongService extends Service {
         getApplicationContext().registerReceiver(mReceiver, intentFilter);
     }
 
-
     public class Receiver extends BroadcastReceiver {
 
         @Override
@@ -368,8 +375,7 @@ public class SongService extends Service {
             } else if(intent.getAction().equalsIgnoreCase(SongService.BROADCAST_NOTIFICATION_NEXT)) {
                 playNextTrack();
             } else if(intent.getAction().equalsIgnoreCase(SongService.BROADCAST_NOTIFICATION_UPDATE)) {
-                // Updates the notification in the case of a Settings change.
-                initNotification();
+                buildNotification();
             }
         }
     }
@@ -377,6 +383,8 @@ public class SongService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        Picasso.with(this).cancelRequest(mTarget);
         try {
             getApplicationContext().unregisterReceiver(mReceiver);
         } catch(IllegalArgumentException e) {
