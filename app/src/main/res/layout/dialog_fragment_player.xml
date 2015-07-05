@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:gravity="center_horizontal"
     android:padding="30dp"
+    android:clickable="true"
     android:background="@color/bg_player_dialog">
 
     <TextView
