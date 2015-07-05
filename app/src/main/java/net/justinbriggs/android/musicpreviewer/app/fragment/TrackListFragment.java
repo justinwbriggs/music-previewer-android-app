@@ -21,6 +21,7 @@ import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.Utility;
 import net.justinbriggs.android.musicpreviewer.app.adapter.TrackListAdapter;
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
+import net.justinbriggs.android.musicpreviewer.app.listener.Callbacks;
 import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
 import java.util.HashMap;
@@ -42,6 +43,7 @@ public class TrackListFragment extends Fragment {
     public static final String EXTRA_NAME = "artist_name_key";
 
     private Listener mListener;
+    private Callbacks.FragmentCallback mFragmentCallback;
     private String mArtistId;
     private String mArtistName;
     private TrackListAdapter mTrackListAdapter;
@@ -99,8 +101,6 @@ public class TrackListFragment extends Fragment {
 
         return rootView;
     }
-
-
 
     // Once the view is created, we can populate the list of tracks.
     @Override
@@ -214,10 +214,16 @@ public class TrackListFragment extends Fragment {
         // the callback interface. If not, it throws an exception
         try {
             mListener = (Listener) activity;
+            mFragmentCallback = (Callbacks.FragmentCallback) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnItemSelectedListener");
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
     }
 
     @Override
@@ -231,17 +237,10 @@ public class TrackListFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
 
+        mFragmentCallback.fragmentVisible(FRAGMENT_TAG);
+
         ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
         if(actionBar != null) {
-
-            if (getResources().getBoolean(R.bool.large_layout)) {
-                actionBar.setDisplayHomeAsUpEnabled(false);
-                actionBar.setSubtitle(mArtistName);
-            } else {
-                actionBar.setDisplayHomeAsUpEnabled(true);
-                actionBar.setSubtitle(mArtistName);
-                actionBar.setTitle(getString(R.string.title_track_list));
-            }
             if (SongService.sIsInitialized) {
                 if (menu != null) {
                     menu.findItem(R.id.action_now_playing).setVisible(true);

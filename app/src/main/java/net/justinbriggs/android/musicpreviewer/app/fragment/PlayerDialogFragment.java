@@ -1,5 +1,6 @@
 package net.justinbriggs.android.musicpreviewer.app.fragment;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -15,9 +16,6 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -35,6 +33,7 @@ import com.squareup.picasso.Picasso;
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract.TrackEntry;
+import net.justinbriggs.android.musicpreviewer.app.listener.Callbacks;
 import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
 public class PlayerDialogFragment extends DialogFragment {
@@ -46,6 +45,7 @@ public class PlayerDialogFragment extends DialogFragment {
     private static final int PREVIEW_DURATION = 30000;
 
     private SongService mBoundService;
+    private Callbacks.FragmentCallback mFragmentCallback;
     boolean mIsBound;
 
     private boolean mHasRun;
@@ -60,6 +60,7 @@ public class PlayerDialogFragment extends DialogFragment {
     // User is interacting with seekBar via touch/drag
     boolean mIsSeeking;
     BroadcastReceiver mReceiver = null;
+
 
     // Need to keep a reference in order to display dynamically after onCreateOptionsMenu()
     MenuItem mShareButton;
@@ -130,6 +131,7 @@ public class PlayerDialogFragment extends DialogFragment {
             updateUi();
             displayShareButton();
 
+
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -163,7 +165,6 @@ public class PlayerDialogFragment extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        Log.v("qwer", "oncreateView");
         bindService();
         mContentResolver = getActivity().getContentResolver();
 
@@ -279,6 +280,7 @@ public class PlayerDialogFragment extends DialogFragment {
             e.printStackTrace();
         }
         mTxtTrack.setText(mCursor.getString(TrackEntry.CURSOR_KEY_TRACK_NAME));
+
     }
 
     @NonNull
@@ -386,30 +388,31 @@ public class PlayerDialogFragment extends DialogFragment {
         outState.putInt(POSITION_KEY, mPosition);
     }
 
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        // This makes sure that the container activity has implemented
+        // the callback interface. If not, it throws an exception
+        try {
+            mFragmentCallback = (Callbacks.FragmentCallback) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement Callbacks.FragmentCallback");
+        }
+    }
+
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
 
+        mFragmentCallback.fragmentVisible(FRAGMENT_TAG);
         // Don't display Now Playing button in this fragment
         menu.findItem(R.id.action_now_playing).setVisible(false);
-
         // Keep a reference to this so we can update dynamically.
         mShareButton = menu.findItem(R.id.action_share);
 
-        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-        if(actionBar != null) {
-
-            if(getDialog() != null) {
-                actionBar.setDisplayHomeAsUpEnabled(false);
-            } else {
-                // Remove the home button and subtitle
-                actionBar.setDisplayHomeAsUpEnabled(false);
-                actionBar.setSubtitle("");
-                actionBar.setTitle(getString(R.string.app_name));
-            }
-
-        }
     }
 
 }

@@ -23,6 +23,7 @@ import android.widget.Toast;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.adapter.ArtistListAdapter;
+import net.justinbriggs.android.musicpreviewer.app.listener.Callbacks;
 import net.justinbriggs.android.musicpreviewer.app.model.MyArtist;
 import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
@@ -38,9 +39,11 @@ import kaaes.spotify.webapi.android.models.Pager;
 
 public class ArtistListFragment extends Fragment {
 
-    public static final String FRAGMENT_TAG = TrackListFragment.class.getSimpleName();
+    public static final String FRAGMENT_TAG = ArtistListFragment.class.getSimpleName();
     public static final String LIST_KEY = "list_key";
     public static final String POSITION_KEY = "position_key";
+
+    Callbacks.FragmentCallback mFragmentCallback;
 
     public interface Listener {
         void onArtistSelected(MyArtist artist);
@@ -71,6 +74,7 @@ public class ArtistListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         setHasOptionsMenu(true);
+
         View rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
         if(savedInstanceState != null && savedInstanceState.containsKey(LIST_KEY)) {
             mArtists = savedInstanceState.getParcelableArrayList(LIST_KEY);
@@ -189,7 +193,6 @@ public class ArtistListFragment extends Fragment {
         });
     }
 
-
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -198,6 +201,7 @@ public class ArtistListFragment extends Fragment {
         // the callback interface. If not, it throws an exception
         try {
             mListener = (Listener) activity;
+            mFragmentCallback = (Callbacks.FragmentCallback) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnItemSelectedListener");
@@ -213,18 +217,18 @@ public class ArtistListFragment extends Fragment {
     }
 
     // This gets called when the activity is resumed because we set hasOptionsMenu(true)
+    // This actually gets called every time the fragment is visible, which makes it a better
+    // candidate for alerting the activity of visibility than onResume()
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
 
+        mFragmentCallback.fragmentVisible(FRAGMENT_TAG);
+
+        //TODO: I left some of the actionBar control to the fragment, although I can probably
+        // move all of it over to the MainActivity
         ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
         if(actionBar != null) {
-
-            actionBar.setDisplayHomeAsUpEnabled(false);
-            // Remove the home button and subtitle
-            actionBar.setTitle(getString(R.string.app_name));
-            actionBar.setSubtitle("");
-
             if (SongService.sIsInitialized) {
                 if (menu != null) {
                     menu.findItem(R.id.action_now_playing).setVisible(true);

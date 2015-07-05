@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ShareActionProvider;
 import android.view.Menu;
@@ -16,19 +17,26 @@ import net.justinbriggs.android.musicpreviewer.app.Utility;
 import net.justinbriggs.android.musicpreviewer.app.fragment.ArtistListFragment;
 import net.justinbriggs.android.musicpreviewer.app.fragment.PlayerDialogFragment;
 import net.justinbriggs.android.musicpreviewer.app.fragment.TrackListFragment;
+import net.justinbriggs.android.musicpreviewer.app.listener.Callbacks;
 import net.justinbriggs.android.musicpreviewer.app.model.MyArtist;
 import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
 public class MainActivity extends AppCompatActivity
         implements ArtistListFragment.Listener,
-        TrackListFragment.Listener {
+        TrackListFragment.Listener,
+        Callbacks.FragmentCallback {
 
-    //TODO: There is a full-screen click on the dialog fragment handset.
+    public static final String EXTRA_ARTIST = "artist_key";
+
+    // TODO: Organize your callbacks into one file or interface.
+    //TODO: The settings activity could probably be a dialogFragment
 
     private boolean mTwoPane;
     private boolean mIsLargeLayout;
 
     private ShareActionProvider mShareActionProvider;
+
+    private MyArtist mArtist;
 
     // TODO: It's a requirement to save the selected item on rotation.
     //TODO: On handsets, if you press Now Playing and rotate, the dialog disappears. This seems to
@@ -37,12 +45,15 @@ public class MainActivity extends AppCompatActivity
 
     // TODO: Need to be able to dismiss the player from the notification drawer, but not the lock screen.
 
-    // TODO Critical: Need to fix the navigation
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
+
+        if(savedInstanceState != null && savedInstanceState.containsKey(EXTRA_ARTIST)) {
+            mArtist = savedInstanceState.getParcelable(EXTRA_ARTIST);
+        }
 
         mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
 
@@ -82,6 +93,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onArtistSelected(MyArtist myArtist) {
+
+        // Keep track of the artist for rotation purposes.
+        mArtist = myArtist;
 
         if(mTwoPane) {
 
@@ -134,6 +148,49 @@ public class MainActivity extends AppCompatActivity
         // Use add instead of replace in order to maintain the fragment view.
         ft.add(R.id.content_frame, fragment, tag);
         ft.commit();
+    }
+
+    // The main controls for the actionbar. Each fragment invokes a callback to alert the activity
+    // that they are visible. The method is invoked in onCreateOptionsMenu() since onResume is not
+    // called in the fragment when the backstack is popped. I also tried to handle the actionBar from
+    // onAttachFragment(), but it was called before setContentView() on some occasions, rendering
+    // the actionBar null.
+    @Override
+    public void fragmentVisible(String fragmentTag) {
+
+        if(!mTwoPane) {
+            if (fragmentTag.equals(ArtistListFragment.FRAGMENT_TAG)) {
+                ActionBar actionBar = getSupportActionBar();
+                if(actionBar != null) {
+                    actionBar.setDisplayHomeAsUpEnabled(false);
+                    // Remove the home button and subtitle
+                    actionBar.setTitle(getString(R.string.app_name));
+                    actionBar.setSubtitle("");
+                }
+
+            } else if(fragmentTag.equals(TrackListFragment.FRAGMENT_TAG)) {
+                ActionBar actionBar = getSupportActionBar();
+                if(actionBar != null) {
+                    actionBar.setDisplayHomeAsUpEnabled(true);
+                    actionBar.setSubtitle(mArtist.getName());
+                    actionBar.setTitle(getString(R.string.title_track_list));
+                }
+
+            } else if(fragmentTag.equals(PlayerDialogFragment.FRAGMENT_TAG)) {
+                // Remove the home button and subtitle
+                ActionBar actionBar = getSupportActionBar();
+                if(actionBar != null) {
+                    actionBar.setDisplayHomeAsUpEnabled(false);
+                    actionBar.setSubtitle("");
+                    actionBar.setTitle(getString(R.string.app_name));
+                }
+            }
+        } else {
+            // Reset the artist name on rotation for large layouts.
+            if(getSupportActionBar() != null && mArtist != null) {
+                getSupportActionBar().setSubtitle(mArtist.getName());
+            }
+        }
     }
 
     @Override
@@ -240,6 +297,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putParcelable(EXTRA_ARTIST, mArtist);
     }
 
 }
