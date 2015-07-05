@@ -34,9 +34,11 @@ public class MainActivity extends AppCompatActivity
     //TODO: On handsets, if you press Now Playing and rotate, the dialog disappears. This seems to
     // only happen intermittently. Looks like it happens when you rotate while the dialog is loading?
 
-    //TODO: Need to use startForeground for the service
 
     // TODO: Need to be able to dismiss the player from the notification drawer, but not the lock screen.
+
+    // TODO Critical: Need to fix the navigation
+    // TODO: The dialog doesn't update if returning to dialog from lock screen notification.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,7 +112,6 @@ public class MainActivity extends AppCompatActivity
 
         FragmentManager fm = getSupportFragmentManager();
 
-
         // Depending on the device size, dialog will either be fullscreen or floating.
         PlayerDialogFragment playerDialogFragment
                 = PlayerDialogFragment.newInstance(position, false);
@@ -138,7 +139,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
         getMenuInflater().inflate(R.menu.main, menu);
         return super.onCreateOptionsMenu(menu);
     }

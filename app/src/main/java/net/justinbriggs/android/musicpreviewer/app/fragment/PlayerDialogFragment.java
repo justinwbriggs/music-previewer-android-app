@@ -290,6 +290,10 @@ public class PlayerDialogFragment extends DialogFragment {
     @Override
     public void onResume() {
         super.onResume();
+        // If returning from lock screen, need to update the UI in case the track has changed.
+        if(mCursor != null) {
+            updateUi();
+        }
         registerReceiver();
     }
 
