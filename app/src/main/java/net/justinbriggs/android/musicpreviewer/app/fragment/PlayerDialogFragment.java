@@ -379,10 +379,16 @@ public class PlayerDialogFragment extends DialogFragment {
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(POSITION_KEY, mPosition);
+    }
+
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
 
-        //inflater.inflate(R.menu.main, menu);
         // Don't display Now Playing button in this fragment
         menu.findItem(R.id.action_now_playing).setVisible(false);
 
@@ -402,12 +408,6 @@ public class PlayerDialogFragment extends DialogFragment {
             }
 
         }
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt(POSITION_KEY, mPosition);
     }
 
 }

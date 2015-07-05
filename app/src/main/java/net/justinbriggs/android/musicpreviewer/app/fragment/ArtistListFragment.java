@@ -216,21 +216,15 @@ public class ArtistListFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        // Only inflate the menu once in the host activity
-
-        //TODO Critical: So commenting this out seems to keep multiple buttons from being created, but
-        // it messes up the back flow
-        //inflater.inflate(R.menu.main, menu);
 
         ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
         if(actionBar != null) {
-            if(getResources().getBoolean(R.bool.large_layout)) {
-                actionBar.setDisplayHomeAsUpEnabled(false);
-            } else {
-                // Remove the home button and subtitle
-                actionBar.setTitle(getString(R.string.app_name));
-                actionBar.setSubtitle("");
-            }
+
+            actionBar.setDisplayHomeAsUpEnabled(false);
+            // Remove the home button and subtitle
+            actionBar.setTitle(getString(R.string.app_name));
+            actionBar.setSubtitle("");
+
             if (SongService.sIsInitialized) {
                 if (menu != null) {
                     menu.findItem(R.id.action_now_playing).setVisible(true);

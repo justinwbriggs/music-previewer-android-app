@@ -220,6 +220,12 @@ public class TrackListFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(EXTRA_ID, mArtistId);
+        outState.putString(EXTRA_NAME, mArtistName);
+    }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -245,11 +251,5 @@ public class TrackListFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putString(EXTRA_ID, mArtistId);
-        outState.putString(EXTRA_NAME, mArtistName);
 
-    }
 }

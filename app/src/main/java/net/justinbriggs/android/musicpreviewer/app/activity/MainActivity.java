@@ -38,7 +38,6 @@ public class MainActivity extends AppCompatActivity
     // TODO: Need to be able to dismiss the player from the notification drawer, but not the lock screen.
 
     // TODO Critical: Need to fix the navigation
-    // TODO: The dialog doesn't update if returning to dialog from lock screen notification.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
