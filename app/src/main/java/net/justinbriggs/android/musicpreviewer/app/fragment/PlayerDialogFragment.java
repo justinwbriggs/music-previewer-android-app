@@ -101,13 +101,8 @@ public class PlayerDialogFragment extends DialogFragment {
                 // Don't want to re-initialize player if the user resumes from action bar button.
                 if(!mFromActionBar) {
                     disableButtons();
-
                     //Initialize player once the service is bound.
-                    Intent intent = new Intent(getActivity(), SongService.class);
-                    intent.setAction(SongService.ACTION_INITIALIZE_PLAYER);
-                    getActivity().startService(intent);
-                    // TODO: In theory this should work, but crashes with null pointer.
-                    //mBoundService.init();
+                    getActivity().startService(new Intent(getActivity(), SongService.class));
                     mHasRun = true;
                 }
             }
@@ -130,7 +125,6 @@ public class PlayerDialogFragment extends DialogFragment {
             updatePlayPause();
             updateUi();
             displayShareButton();
-
 
         }
 

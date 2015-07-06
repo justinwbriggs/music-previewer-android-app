@@ -40,7 +40,6 @@ public class SongService extends Service {
 
     public static final int NOTIFICATION_ID = 1;
 
-    public static final String ACTION_INITIALIZE_PLAYER = "initialize_player";
     public static final String POSITION_KEY = "position_key";
 
     // Intent key for notifying of the current tracks progress.
@@ -152,6 +151,13 @@ public class SongService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        init();
+        // If the system has to kill service due to memory, don't restart.
+        return START_NOT_STICKY;
+    }
+
+    public void init() {
+
         // Send a broadcast every second to notify the component UI to update seekbar.
         mRunnable = new Runnable() {
             @Override
@@ -164,18 +170,6 @@ public class SongService extends Service {
             }
         };
 
-        // Should be able to just call init() from component, crashes with null pointer
-        if(intent != null) {
-            //Load up the trackUrls from the db when the service is started.
-            if (intent.getAction().equals(ACTION_INITIALIZE_PLAYER)) {
-                init();
-            }
-        }
-        // If the system has to kill service due to memory, don't restart.
-        return START_NOT_STICKY;
-    }
-
-    public void init() {
         sIsInitialized = true;
         // Get the tracks from the db
         mCursor = getApplicationContext().getContentResolver().query(
@@ -269,7 +263,6 @@ public class SongService extends Service {
     private void buildNotification() {
 
         //TODO: Non-critical: Should disable controls until the track has finished loading
-        //TODO: Non-critical: Should open the dialog when notification container clicked.
 
         mNotifyBuilder = new Notification.Builder(this);
 
@@ -282,7 +275,6 @@ public class SongService extends Service {
                 PendingIntent.getActivity(this, 0, broadClickIntent,
                         PendingIntent.FLAG_CANCEL_CURRENT);
 
-        //TODO: If the player is paused, we need to be able to dismiss
         // Set the common attributes first
         mNotifyBuilder
                 .setSmallIcon(R.drawable.ic_notification)
