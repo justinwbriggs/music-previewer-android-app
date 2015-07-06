@@ -34,16 +34,12 @@ import kaaes.spotify.webapi.android.models.Track;
 
 public class TrackListFragment extends Fragment {
 
-    public interface Listener {
-        void onTrackSelected(int position);
-    }
 
     public static final String FRAGMENT_TAG = TrackListFragment.class.getSimpleName();
     public static final String EXTRA_ID = "artist_id_key";
     public static final String EXTRA_NAME = "artist_name_key";
 
-    private Listener mListener;
-    private Callbacks.FragmentCallback mFragmentCallback;
+    private Callbacks mFragmentCallback;
     private String mArtistId;
     private String mArtistName;
     private TrackListAdapter mTrackListAdapter;
@@ -95,7 +91,7 @@ public class TrackListFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 // Let the host activity sort out navigation.
-                mListener.onTrackSelected(position);
+                mFragmentCallback.trackSelected(position);
             }
         });
 
@@ -209,21 +205,12 @@ public class TrackListFragment extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-
-        // This makes sure that the container activity has implemented
-        // the callback interface. If not, it throws an exception
         try {
-            mListener = (Listener) activity;
-            mFragmentCallback = (Callbacks.FragmentCallback) activity;
+            mFragmentCallback = (Callbacks) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement OnItemSelectedListener");
+                    + " must implement Callbacks");
         }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
     }
 
     @Override
@@ -249,6 +236,4 @@ public class TrackListFragment extends Fragment {
             }
         }
     }
-
-
 }

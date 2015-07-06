@@ -21,21 +21,19 @@ import net.justinbriggs.android.musicpreviewer.app.listener.Callbacks;
 import net.justinbriggs.android.musicpreviewer.app.model.MyArtist;
 import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
+// TODO: Swap out the NoArtistFound toast message for a general message on the list screen
+
 public class MainActivity extends AppCompatActivity
-        implements ArtistListFragment.Listener,
-        TrackListFragment.Listener,
-        Callbacks.FragmentCallback {
+        implements Callbacks {
 
     public static final String EXTRA_ARTIST = "artist_key";
-
-    // TODO: Organize your callbacks into one file or interface.
-    //TODO: The settings activity could probably be a dialogFragment
 
     private boolean mTwoPane;
     private boolean mIsLargeLayout;
 
     private ShareActionProvider mShareActionProvider;
 
+    // Used to keep the action bar updated on large layouts
     private MyArtist mArtist;
 
     // TODO: It's a requirement to save the selected item on rotation.
@@ -43,17 +41,10 @@ public class MainActivity extends AppCompatActivity
     // only happen intermittently. Looks like it happens when you rotate while the dialog is loading?
 
 
-    // TODO: Need to be able to dismiss the player from the notification drawer, but not the lock screen.
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
-
-        if(savedInstanceState != null && savedInstanceState.containsKey(EXTRA_ARTIST)) {
-            mArtist = savedInstanceState.getParcelable(EXTRA_ARTIST);
-        }
 
         mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
 
@@ -92,7 +83,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onArtistSelected(MyArtist myArtist) {
+    public void artistSelected(MyArtist myArtist) {
 
         // Keep track of the artist for rotation purposes.
         mArtist = myArtist;
@@ -118,7 +109,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onTrackSelected(int position) {
+    public void trackSelected(int position) {
 
         //TODO: We should keep track of the position in a less stupid manner.
         Utility.setCurrentTrackPositionPref(getApplicationContext(), position);
@@ -149,6 +140,9 @@ public class MainActivity extends AppCompatActivity
         ft.add(R.id.content_frame, fragment, tag);
         ft.commit();
     }
+
+
+
 
     // The main controls for the actionbar. Each fragment invokes a callback to alert the activity
     // that they are visible. The method is invoked in onCreateOptionsMenu() since onResume is not
@@ -228,7 +222,6 @@ public class MainActivity extends AppCompatActivity
             default:
                 return super.onOptionsItemSelected(item);
         }
-
     }
 
     private void setShareIntent(MenuItem item) {
@@ -244,7 +237,6 @@ public class MainActivity extends AppCompatActivity
         if (mShareActionProvider != null) {
             mShareActionProvider.setShareIntent(shareIntent);
         }
-
     }
 
     @Override
@@ -262,36 +254,15 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-    }
 
-    /*
-            * Only called:
-            * 1. After Activity recreation from orientation change.
-            * 2. When returning to this activity from another Activity after this activity has been killed
-            * via memory manager.
-            *
-            * NOT Called when:
-            * 1. Application is first started.
-            * 2. Returning to this activity from another Activity via Back button, and this activity is
-            * currently in a stop state.
-            */
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+        if(savedInstanceState != null && savedInstanceState.containsKey(EXTRA_ARTIST)) {
+            mArtist = savedInstanceState.getParcelable(EXTRA_ARTIST);
+        }
     }
 
-    /*
-     * Called when:
-     * 1. A new Activity is started, since this activity would be subject to destruction via
-     * memory management.
-     * 2. On Orientation change, since it destroys this activity.
-     * NOT called when:
-     * 1. Pressing the back button from this activity.
-     */
-    // We're currently just letting the fragments handle their own state.
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);

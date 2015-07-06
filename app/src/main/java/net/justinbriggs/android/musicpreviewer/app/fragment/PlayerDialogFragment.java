@@ -45,7 +45,7 @@ public class PlayerDialogFragment extends DialogFragment {
     private static final int PREVIEW_DURATION = 30000;
 
     private SongService mBoundService;
-    private Callbacks.FragmentCallback mFragmentCallback;
+    private Callbacks mFragmentCallback;
     boolean mIsBound;
 
     private boolean mHasRun;
@@ -389,13 +389,12 @@ public class PlayerDialogFragment extends DialogFragment {
         // This makes sure that the container activity has implemented
         // the callback interface. If not, it throws an exception
         try {
-            mFragmentCallback = (Callbacks.FragmentCallback) activity;
+            mFragmentCallback = (Callbacks) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement Callbacks.FragmentCallback");
+                    + " must implement Callbacks");
         }
     }
-
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {

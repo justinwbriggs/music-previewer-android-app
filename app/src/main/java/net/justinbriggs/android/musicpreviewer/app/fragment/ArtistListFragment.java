@@ -43,13 +43,8 @@ public class ArtistListFragment extends Fragment {
     public static final String LIST_KEY = "list_key";
     public static final String POSITION_KEY = "position_key";
 
-    Callbacks.FragmentCallback mFragmentCallback;
+    Callbacks mFragmentCallback;
 
-    public interface Listener {
-        void onArtistSelected(MyArtist artist);
-    }
-
-    private Listener mListener;
     private ArrayList<MyArtist> mArtists = new ArrayList<>();
     private ArtistListAdapter mArtistListAdapter;
     private ListView mListView;
@@ -113,7 +108,7 @@ public class ArtistListFragment extends Fragment {
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
 
                 MyArtist artist = mArtistListAdapter.getItem(position);
-                mListener.onArtistSelected(artist);
+                mFragmentCallback.artistSelected(artist);
                 view.setSelected(true);
                 // This records the artist list position.
                 mPosition = position;
@@ -168,8 +163,6 @@ public class ArtistListFragment extends Fragment {
                 mArtistListAdapter.clear();
                 for(Artist artist: pager.items) {
 
-                    //TODO: Make this a static method in the MyArtist class
-
                     // Turning each Spotify Artist into a parcelable MyArtist
                     MyArtist myArtist = new MyArtist();
                     myArtist.setId(artist.id);
@@ -196,17 +189,12 @@ public class ArtistListFragment extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-
-        // This makes sure that the container activity has implemented
-        // the callback interface. If not, it throws an exception
         try {
-            mListener = (Listener) activity;
-            mFragmentCallback = (Callbacks.FragmentCallback) activity;
+            mFragmentCallback = (Callbacks) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement OnItemSelectedListener");
+                    + " must implement Callbacks");
         }
-
     }
 
     @Override

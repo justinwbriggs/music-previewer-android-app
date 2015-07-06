@@ -1,9 +1,9 @@
 package net.justinbriggs.android.musicpreviewer.app.listener;
 
-public class Callbacks {
+import net.justinbriggs.android.musicpreviewer.app.model.MyArtist;
 
-    public interface FragmentCallback {
-        void fragmentVisible(String fragmentTag);
-    }
-
+public interface Callbacks {
+    void fragmentVisible(String fragmentTag);
+    void artistSelected(MyArtist artist);
+    void trackSelected(int position);
 }
