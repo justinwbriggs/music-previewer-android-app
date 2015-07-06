@@ -203,7 +203,6 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch (item.getItemId()) {
-
             case android.R.id.home:
                 FragmentManager fm = getSupportFragmentManager();
                 fm.popBackStackImmediate();
@@ -220,7 +219,6 @@ public class MainActivity extends AppCompatActivity
                 }
                 return true;
             case R.id.action_share:
-
                 //TODO Non-critical: I can't get the share button to appear as an icon, because
                 // the shareIntent must be set onCreateOptionsMenu. It's in the overflow menu for now.
                 if(mShareActionProvider == null) {

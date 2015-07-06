@@ -35,8 +35,6 @@ import java.io.IOException;
  * http://stackoverflow.com/questions/18125447/using-intentservice-for-mediaplayer-playback
  */
 
-//TODO: When returning from the lock screen notification after switching tracks, the dialog needs
-// to update
 
 public class SongService extends Service {
 
@@ -282,17 +280,26 @@ public class SongService extends Service {
         Intent broadClickIntent = new Intent(this, MainActivity.class);
         PendingIntent broadClickPendingIntent =
                 PendingIntent.getActivity(this, 0, broadClickIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT);
+                        PendingIntent.FLAG_CANCEL_CURRENT);
 
+        //TODO: If the player is paused, we need to be able to dismiss
         // Set the common attributes first
         mNotifyBuilder
                 .setSmallIcon(R.drawable.ic_notification)
                 // The Large icon
                 .setLargeIcon(mAlbumImage)
                 .setContentIntent(broadClickPendingIntent)
+                // Keeps the notification from being dismissed if broad clicked
                 .setAutoCancel(false)
                 .setContentTitle(mCursor.getString(TrackEntry.CURSOR_KEY_ARTIST_NAME))
                 .setContentText(mCursor.getString(TrackEntry.CURSOR_KEY_TRACK_NAME));
+
+        // Only allow the user to dismiss the notification if the player is paused.
+        if(mPlayer.isPlaying()) {
+            mNotifyBuilder.setOngoing(true);
+        } else {
+            mNotifyBuilder.setOngoing(false);
+        }
 
         // Sets the builder options to display on lock screen or not.
         // 5.0 devices can show notifications on lock screen.
@@ -335,11 +342,10 @@ public class SongService extends Service {
                 (int)System.currentTimeMillis(), nextIntent, 0);
         mNotifyBuilder.addAction(android.R.drawable.ic_media_next, null, pendingIntentNext);
 
-        // You could use an instance of NotificationManager and call notify(), but this keeps the
-        // player from being dismissed.
-        //TODO Non-critical: Like to be able to dismiss the notification drawer player (functionally stopping the service), but not the
-        // lock screen player (like Pocket Casts does).
-        startForeground(NOTIFICATION_ID,mNotifyBuilder.build());
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(NOTIFICATION_ID, mNotifyBuilder.build());
+
     }
 
     public void setBuilderTrackImage() {
