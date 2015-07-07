@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity
 
     //TODO: On handsets, if you press Now Playing and rotate, the dialog disappears. This seems to
     // only happen intermittently. Looks like it happens when you rotate while the dialog is loading?
-
+    //Test
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
