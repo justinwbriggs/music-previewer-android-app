@@ -30,6 +30,6 @@
     <string name="notification_playing">Playing %1$s</string>
 
     <string name="toast_no_artists">No artists found. Please refine search.</string>
-    <string name="toast_no_tracks">No tracks found for this artist.</string>
+    <string name="label_no_tracks">No tracks found for this artist.</string>
     <string name="toast_artist_required">Please enter an artist.</string>
 </resources>

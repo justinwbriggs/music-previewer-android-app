@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -43,6 +44,7 @@ public class TrackListFragment extends Fragment {
     private String mArtistId;
     private String mArtistName;
     private TrackListAdapter mTrackListAdapter;
+    private ListView mListView;
 
     public static TrackListFragment newInstance(String artistId, String artistName) {
         TrackListFragment f = new TrackListFragment();
@@ -84,16 +86,21 @@ public class TrackListFragment extends Fragment {
 
         // Just pass in an empty cursor, let onViewCreated handle updating the view.
         mTrackListAdapter = new TrackListAdapter(getActivity(), null, 0);
-        ListView listView = (ListView) rootView.findViewById(R.id.listview_track);
-        listView.setAdapter(mTrackListAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
+        mListView = (ListView) rootView.findViewById(R.id.listview_track);
+        mListView.setAdapter(mTrackListAdapter);
+
+        Log.v("qwer", "tv_empty: " + rootView.findViewById(R.id.tv_empty));
+                mListView.setEmptyView(rootView.findViewById(R.id.tv_empty));
+
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 // Let the host activity sort out navigation.
                 mFragmentCallback.trackSelected(position);
             }
         });
+
 
         return rootView;
     }
@@ -106,7 +113,6 @@ public class TrackListFragment extends Fragment {
         //TODO: I wanted to cache these results so the AsyncTask did not have to run again, but
         // it was giving me issues, so I just fetch again.
         fetchTracks(mArtistId);
-
     }
 
     public void fetchTracks(String artistId) {
@@ -114,6 +120,8 @@ public class TrackListFragment extends Fragment {
         FetchTracksTask tracksTask = new FetchTracksTask();
         tracksTask.execute(artistId);
     }
+
+
 
     public class FetchTracksTask extends AsyncTask<String, Void, List<Track>> {
 
@@ -135,9 +143,7 @@ public class TrackListFragment extends Fragment {
                 map.put("country", Utility.getPrefCountryCode(getActivity()));
 
                 List<Track> tracks = spotify.getArtistTopTrack(params[0], map).tracks;
-                if(tracks.size() == 0) {
-                    displayToast(getString(R.string.toast_no_tracks));
-                }
+
                 // First, delete all records
                 getActivity().getContentResolver().delete(
                         MusicContract.TrackEntry.CONTENT_URI,

@@ -21,7 +21,6 @@ import net.justinbriggs.android.musicpreviewer.app.listener.Callbacks;
 import net.justinbriggs.android.musicpreviewer.app.model.MyArtist;
 import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
-// TODO: Swap out the NoArtistFound toast message for a general message on the list screen
 
 public class MainActivity extends AppCompatActivity
         implements Callbacks {
@@ -140,8 +139,6 @@ public class MainActivity extends AppCompatActivity
         ft.add(R.id.content_frame, fragment, tag);
         ft.commit();
     }
-
-
 
 
     // The main controls for the actionbar. Each fragment invokes a callback to alert the activity
