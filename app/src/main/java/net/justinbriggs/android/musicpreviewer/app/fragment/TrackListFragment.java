@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,7 +15,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import net.justinbriggs.android.musicpreviewer.app.R;
 import net.justinbriggs.android.musicpreviewer.app.Utility;
@@ -89,9 +87,7 @@ public class TrackListFragment extends Fragment {
 
         mListView = (ListView) rootView.findViewById(R.id.listview_track);
         mListView.setAdapter(mTrackListAdapter);
-
-        Log.v("qwer", "tv_empty: " + rootView.findViewById(R.id.tv_empty));
-                mListView.setEmptyView(rootView.findViewById(R.id.tv_empty));
+        mListView.setEmptyView(rootView.findViewById(R.id.tv_empty));
 
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -100,7 +96,6 @@ public class TrackListFragment extends Fragment {
                 mFragmentCallback.trackSelected(position);
             }
         });
-
 
         return rootView;
     }
@@ -120,8 +115,6 @@ public class TrackListFragment extends Fragment {
         FetchTracksTask tracksTask = new FetchTracksTask();
         tracksTask.execute(artistId);
     }
-
-
 
     public class FetchTracksTask extends AsyncTask<String, Void, List<Track>> {
 
@@ -197,15 +190,6 @@ public class TrackListFragment extends Fragment {
 
             }
         }
-    }
-
-    protected void displayToast(final String message) {
-        getActivity().runOnUiThread(new Runnable() {
-            public void run() {
-                Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
-            }
-        });
-
     }
 
     @Override

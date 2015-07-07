@@ -40,6 +40,13 @@ public class TrackListAdapter extends CursorAdapter {
         View view = LayoutInflater.from(context).inflate(R.layout.list_item_track, parent, false);
         ViewHolder viewHolder = new ViewHolder(view);
         view.setTag(viewHolder);
+
+        if (cursor.getPosition() % 2 == 0) {
+            view.setBackgroundColor(mContext.getResources().getColor(R.color.bg_list_item_even));
+        } else {
+            view.setBackgroundColor(mContext.getResources().getColor(R.color.bg_list_item_odd));
+        }
+
         return view;
     }
 

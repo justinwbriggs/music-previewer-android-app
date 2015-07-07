@@ -5,8 +5,13 @@
     <item name="bg_list_selected" type="color">#cccccc</item>
     <item name="bg_pane_divider" type="color">#cccccc</item>
 
+    <color name="color_primary_dark">#366AD3</color>
+    <color name="color_primary">#4688F1</color>
+    <color name="color_navigation_bar">#000000</color>
 
-    <color name="sunshine_light_blue">#ff64c2f4</color>
-    <color name="sunshine_blue">#ff1ca8f4</color>
-    <color name="sunshine_dark_blue">#0288D1</color>
+
+    <color name="bg_list_item_even" type="color">#fff</color>
+    <color name="bg_list_item_odd" type="color">#fff</color>
+    <color name="divider" type="color">#cccccc</color>
+
 </resources>
