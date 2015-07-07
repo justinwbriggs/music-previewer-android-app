@@ -35,7 +35,6 @@ public class MainActivity extends AppCompatActivity
     // Used to keep the action bar updated on large layouts
     private MyArtist mArtist;
 
-    // TODO: It's a requirement to save the selected item on rotation.
     //TODO: On handsets, if you press Now Playing and rotate, the dialog disappears. This seems to
     // only happen intermittently. Looks like it happens when you rotate while the dialog is loading?
 
@@ -256,7 +255,6 @@ public class MainActivity extends AppCompatActivity
 
         // 1 would represent the ArtistListFragment
         if(count == 1) {
-            //TODO: Prompt the user to leave the app?
             finish();
         } else{
             manager.popBackStackImmediate();

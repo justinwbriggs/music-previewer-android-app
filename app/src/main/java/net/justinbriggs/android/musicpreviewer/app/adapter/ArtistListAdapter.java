@@ -36,12 +36,6 @@ public class ArtistListAdapter extends ArrayAdapter<MyArtist> {
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View rowView = inflater.inflate(R.layout.list_item_artist, parent, false);
 
-        if (position % 2 == 0) {
-            rowView.setBackgroundColor(mContext.getResources().getColor(R.color.bg_list_item_even));
-        } else {
-            rowView.setBackgroundColor(mContext.getResources().getColor(R.color.bg_list_item_odd));
-        }
-
         ImageView ivArtist = (ImageView) rowView.findViewById(R.id.iv_artist);
         try {
 

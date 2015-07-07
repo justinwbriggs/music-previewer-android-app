@@ -16,7 +16,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:singleLine="true"
-            android:text="Herbie Hancock"
             android:inputType="textCapSentences"
             android:imeOptions="actionSearch|flagNoExtractUi"
             android:hint="@string/hint_search"/>
@@ -37,6 +36,6 @@
         android:choiceMode="singleChoice"
         android:divider="@color/divider"
         android:dividerHeight="1dp"
-        android:listSelector="@color/bg_list_selected"/>
+        android:listSelector="@drawable/selector"/>
 
 </RelativeLayout>

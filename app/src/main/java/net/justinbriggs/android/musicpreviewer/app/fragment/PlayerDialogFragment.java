@@ -265,7 +265,6 @@ public class PlayerDialogFragment extends DialogFragment {
         mTxtAlbum.setText(mCursor.getString(TrackEntry.CURSOR_KEY_ALBUM_NAME));
         try {
             // 0 should be the largest image
-            //TODO: Make sure you record the thumbnail and the large image in the db
             String imageUrl = mCursor.getString(TrackEntry.CURSOR_KEY_ALBUM_IMAGE_URL);
             Picasso.with(getActivity()).load(imageUrl)
                     .placeholder(R.drawable.ic_placeholder)

@@ -58,8 +58,8 @@ public class ArtistListFragment extends Fragment {
     public void onResume() {
         super.onResume();
         // After re-orientation, set the last position
+        //http://stackoverflow.com/questions/27335355
         mListView.setSelection(mPosition);
-        //TODO: Can't figure out how to highlight the last selected item on rotation
     }
 
     @Override
@@ -70,6 +70,9 @@ public class ArtistListFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_artist_list, container, false);
         if(savedInstanceState != null && savedInstanceState.containsKey(LIST_KEY)) {
             mArtists = savedInstanceState.getParcelableArrayList(LIST_KEY);
+        }
+        if(savedInstanceState != null && savedInstanceState.containsKey(POSITION_KEY)) {
+            mPosition = savedInstanceState.getInt(POSITION_KEY);
         }
 
         mArtistListAdapter = new ArtistListAdapter(getActivity(), mArtists);
@@ -198,6 +201,7 @@ public class ArtistListFragment extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList(LIST_KEY, mArtists);
+
         outState.putInt(POSITION_KEY, mPosition);
     }
 

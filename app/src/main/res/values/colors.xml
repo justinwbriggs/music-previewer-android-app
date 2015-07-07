@@ -10,6 +10,9 @@
     <color name="color_navigation_bar">#000000</color>
 
 
+
+    <color name="bg_list_item_selected" type="color">#ccc</color>
+    <color name="bg_list_item_default" type="color">#fff</color>
     <color name="bg_list_item_even" type="color">#fff</color>
     <color name="bg_list_item_odd" type="color">#fff</color>
     <color name="divider" type="color">#cccccc</color>
