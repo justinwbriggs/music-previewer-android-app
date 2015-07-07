@@ -6,8 +6,6 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -21,7 +19,6 @@ import net.justinbriggs.android.musicpreviewer.app.Utility;
 import net.justinbriggs.android.musicpreviewer.app.adapter.TrackListAdapter;
 import net.justinbriggs.android.musicpreviewer.app.data.MusicContract;
 import net.justinbriggs.android.musicpreviewer.app.listener.Callbacks;
-import net.justinbriggs.android.musicpreviewer.app.service.SongService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -213,17 +210,6 @@ public class TrackListFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-
-        mFragmentCallback.fragmentVisible(FRAGMENT_TAG);
-
-        ActionBar actionBar = ((AppCompatActivity)getActivity()).getSupportActionBar();
-        if(actionBar != null) {
-            if (SongService.sIsInitialized) {
-                if (menu != null) {
-                    menu.findItem(R.id.action_now_playing).setVisible(true);
-                    menu.findItem(R.id.action_share).setVisible(true);
-                }
-            }
-        }
+        mFragmentCallback.fragmentVisible(FRAGMENT_TAG, menu);
     }
 }

@@ -147,39 +147,51 @@ public class MainActivity extends AppCompatActivity
     // onAttachFragment(), but it was called before setContentView() on some occasions, rendering
     // the actionBar null.
     @Override
-    public void fragmentVisible(String fragmentTag) {
+    public void fragmentVisible(String fragmentTag, Menu menu) {
+
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar == null || menu == null) {
+            return;
+        }
 
         if(!mTwoPane) {
             if (fragmentTag.equals(ArtistListFragment.FRAGMENT_TAG)) {
-                ActionBar actionBar = getSupportActionBar();
-                if(actionBar != null) {
-                    actionBar.setDisplayHomeAsUpEnabled(false);
-                    // Remove the home button and subtitle
-                    actionBar.setTitle(getString(R.string.app_name));
-                    actionBar.setSubtitle("");
+                actionBar.setDisplayHomeAsUpEnabled(false);
+                // Remove the home button and subtitle
+                actionBar.setTitle(getString(R.string.app_name));
+                actionBar.setSubtitle("");
+                if (SongService.sIsInitialized) {
+                    menu.findItem(R.id.action_now_playing).setVisible(true);
+                    menu.findItem(R.id.action_share).setVisible(true);
                 }
 
             } else if(fragmentTag.equals(TrackListFragment.FRAGMENT_TAG)) {
-                ActionBar actionBar = getSupportActionBar();
-                if(actionBar != null) {
-                    actionBar.setDisplayHomeAsUpEnabled(true);
-                    actionBar.setSubtitle(mArtist.getName());
-                    actionBar.setTitle(getString(R.string.title_track_list));
+                actionBar.setDisplayHomeAsUpEnabled(true);
+                actionBar.setSubtitle(mArtist.getName());
+                actionBar.setTitle(getString(R.string.title_track_list));
+                if (SongService.sIsInitialized) {
+                    menu.findItem(R.id.action_now_playing).setVisible(true);
+                    menu.findItem(R.id.action_share).setVisible(true);
+
                 }
 
             } else if(fragmentTag.equals(PlayerDialogFragment.FRAGMENT_TAG)) {
                 // Remove the home button and subtitle
-                ActionBar actionBar = getSupportActionBar();
-                if(actionBar != null) {
-                    actionBar.setDisplayHomeAsUpEnabled(false);
-                    actionBar.setSubtitle("");
-                    actionBar.setTitle(getString(R.string.app_name));
-                }
+                actionBar.setDisplayHomeAsUpEnabled(false);
+                actionBar.setSubtitle("");
+                actionBar.setTitle(getString(R.string.app_name));
+                // Don't display Now Playing button in this fragment
+                menu.findItem(R.id.action_now_playing).setVisible(false);
+
             }
         } else {
             // Reset the artist name on rotation for large layouts.
-            if(getSupportActionBar() != null && mArtist != null) {
-                getSupportActionBar().setSubtitle(mArtist.getName());
+            if(mArtist != null) {
+                actionBar.setSubtitle(mArtist.getName());
+            }
+            if (SongService.sIsInitialized) {
+                menu.findItem(R.id.action_now_playing).setVisible(true);
+                menu.findItem(R.id.action_share).setVisible(true);
             }
         }
     }

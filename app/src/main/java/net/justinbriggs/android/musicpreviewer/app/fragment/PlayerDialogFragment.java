@@ -399,13 +399,9 @@ public class PlayerDialogFragment extends DialogFragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-
-        mFragmentCallback.fragmentVisible(FRAGMENT_TAG);
-        // Don't display Now Playing button in this fragment
-        menu.findItem(R.id.action_now_playing).setVisible(false);
+        mFragmentCallback.fragmentVisible(FRAGMENT_TAG, menu);
         // Keep a reference to this so we can update dynamically.
         mShareButton = menu.findItem(R.id.action_share);
-
     }
 
 }
