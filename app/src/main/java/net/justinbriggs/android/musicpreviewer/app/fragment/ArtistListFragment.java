@@ -57,8 +57,6 @@ public class ArtistListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // After re-orientation, set the last position
-        //http://stackoverflow.com/questions/27335355
         mListView.setSelection(mPosition);
     }
 
@@ -103,6 +101,8 @@ public class ArtistListFragment extends Fragment {
         mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 
         mListView.setAdapter(mArtistListAdapter);
+
+
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
@@ -176,6 +176,7 @@ public class ArtistListFragment extends Fragment {
                 }
             }
         }
+
     }
 
     protected void displayToast(final String message) {
@@ -208,6 +209,9 @@ public class ArtistListFragment extends Fragment {
     // Called when the activity is resumed because we set hasOptionsMenu(true)
     // Also called every time the fragment is visible, which makes it a better
     // candidate for alerting the activity of visibility than onResume()
+
+    //TODO: You don't really need a callback here, just use onAttach(), it gives you a reference
+    // to the Activity so you can just call methods from there.
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);

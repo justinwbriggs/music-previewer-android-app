@@ -382,6 +382,10 @@ public class SongService extends Service {
     public void onDestroy() {
         super.onDestroy();
 
+        // Cancel the notification when destroyed.
+        //NotificationManager notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        //notificationManager.cancel(NOTIFICATION_ID);
+
         Picasso.with(this).cancelRequest(mTarget);
         try {
             getApplicationContext().unregisterReceiver(mReceiver);

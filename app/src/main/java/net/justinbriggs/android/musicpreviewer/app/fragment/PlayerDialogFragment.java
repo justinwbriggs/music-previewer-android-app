@@ -366,6 +366,7 @@ public class PlayerDialogFragment extends DialogFragment {
         super.onDestroy();
         //TODO: Going to have to close this?
         //mCursor.close();
+
     }
 
     // Displays the Share Button dynamically once the track has loaded.

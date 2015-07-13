@@ -35,6 +35,27 @@ public class MainActivity extends AppCompatActivity
     // Used to keep the action bar updated on large layouts
     private MyArtist mArtist;
 
+    //TODO: Additional Features:
+
+//    Caches queries/results so that any recent query can be repeated without a call to the Spotify API.
+//    Allows user to see cached Artist/Track info even when off line.
+//    Cache cleans up stale data to keep its size reasonable.
+//    Pre-fetch the track data for the top few artist results.
+//    Batches network transactions for better performance.
+//    Added a preference setting to filter tracks marked as Explicit.
+//    Created custom launcher and notification icons.
+//    Begins playing the next song in the list when the current song completes.
+//    The currently playing track is highlighted in the track list. This is updated when it moves to the next track.
+//    Notification data is also updated when the next track begins.
+
+    //I'm using the SQLite database to store the cache data. There are 4 tables. Query, QueryArtist,
+    // Artist, and Track. Query stores strings that the user has searched for, Artist and Track
+    // store that data, and QueryArtist allows a many-to-many join between queries and artists
+    // (1 query results in multiple artists, and each artist may be found via multiple queries).
+    // The Artist List and Track List components use a ContentProvider to pull their data directly
+    // from the database.
+
+    
     //TODO: On handsets, if you press Now Playing and rotate, the dialog disappears. This seems to
     // only happen intermittently. Looks like it happens when you rotate while the dialog is loading?
     //Test
@@ -43,6 +64,11 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // The Theme's windowBackground is masked by the opaque background of the activity, and
+        // the windowBackground causes an unnecessary overdraw. Nullifying the windowBackground
+        // removes that overdraw.
+        getWindow().setBackgroundDrawable(null);
 
         mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
 
@@ -260,6 +286,7 @@ public class MainActivity extends AppCompatActivity
             manager.popBackStackImmediate();
         }
     }
+
 
 
     @Override
